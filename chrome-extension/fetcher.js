@@ -1,7 +1,14 @@
 
-$('*').on('mouseover', function(e) {
+jQuery('*').on('mouseenter click', function(e) {
     var next = e.target;
     var path = [];
+    
+    var logLine = {
+    	eventType: e.type,
+    	elements: [],
+    	url: document.location.href,
+    	cookie: document.cookie
+    };
     
     while(next != null) {
         var attributes = [];
@@ -13,10 +20,10 @@ $('*').on('mouseover', function(e) {
             attributes.push(next.attributes[i].name, next.attributes[i].value);
         }
         next = next.parentElement;
-        path.push(obj);
+        logLine.elements.push(obj)
     }
     
-	poster.log.push(path);
+	poster.log.push(logLine);
 });
 
 
