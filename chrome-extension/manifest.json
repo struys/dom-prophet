@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Click Tracker",
+  "description": "A tool for logging clicks on a page",
+  "version": "1.0",
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [{
+    "matches": ["http://www.yelp.com/*"],
+    "js": ["jquery-1.9.1.min.js", "fetcher.js"],
+    "css": []
+  }]
+}
