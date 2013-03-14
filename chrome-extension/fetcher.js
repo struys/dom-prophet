@@ -17,7 +17,7 @@ jQuery('*').on('mouseenter click', function(e) {
             'attributes': attributes
         };
         for(var i = 0; i < next.attributes.length; i++) {
-            attributes.push(next.attributes[i].name, next.attributes[i].value);
+            attributes.push([next.attributes[i].name, next.attributes[i].value]);
         }
         next = next.parentElement;
         logLine.elements.push(obj)

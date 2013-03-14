@@ -13,7 +13,16 @@ def write_to_log():
 
 @app.route('/log', methods=['GET'])	
 def view_log():
-	return open(log_file_path, 'r').read()
+	index = request.args.get('index')
+	if index is None:
+		return open(log_file_path, 'r').read()
+	
+	index = int(index)
+	
+	with open(log_file_path) as log_file:
+		for i, l in enumerate(log_file):
+			if i == index:
+				return l
 
 @app.route('/log/size', methods=['GET'])		
 def log_length():
@@ -24,5 +33,5 @@ def log_length():
 	return str(i + 1)
 
 if __name__ == "__main__":
-	app.run(debug = True)
+	app.run(host='0.0.0.0', debug = True)
 
