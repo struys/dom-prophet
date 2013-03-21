@@ -27,6 +27,11 @@ Test = collections.namedtuple('Test', ['command', 'name', 'nonzero', 'config'])
 
 TESTS = [
     Test(
+        "./check.sh",
+        'All   - Things installed',
+        False, 'testconsolelog',
+    ),
+    Test(
         "%s | xargs grep 'console.log'" % JS_FILES,
         'JS    - Console.log',
         True, 'testconsolelog',
