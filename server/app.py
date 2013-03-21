@@ -6,6 +6,8 @@ from flask import request
 from flask import render_template
 from flask import Response
 
+from util.css_to_cypher import calculate_neo4j_query
+
 app = Flask(__name__)
 
 log_file_path = '../log'
@@ -41,7 +43,13 @@ def log_length():
 @app.route('/', methods=['GET'])
 def index():
     '''Expects parameter "q"'''
-    return render_template('index.htm', search_term=request.args.get('q', ''))
+    search_term = request.args.get('q', '')
+    env = {
+        'search_term': search_term,
+        'query': calculate_neo4j_query(search_term) if search_term else ''
+    }
+
+    return render_template('index.htm', **env)
 
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
@@ -53,6 +61,12 @@ def catch_all(path):
     if not app.debug:
         abort(404)
     try:
+        # Make the paths relative to where this file is
+        path = os.path.join(
+            os.path.split(os.path.abspath(__file__))[0],
+            path
+        )
+
         with open(path, 'r') as f:
             extension = os.path.splitext(path)[1]
             return Response(
