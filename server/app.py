@@ -59,7 +59,7 @@ def catch_all(path):
                 f.read(),
                 mimetype=EXTENSIONS_TO_MIMETYPES.get(extension, 'text/html')
             )
-    except IOError, e:
+    except IOError:
         abort(404)
         return
 
