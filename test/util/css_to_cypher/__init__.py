@@ -56,6 +56,9 @@ class TestParse(unittest.TestCase):
         query = cc.calculate_neo4j_query('div span a')
         self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT*]->(b), (b)-[:PARENT*]->(c) where a.tagName='div' and b.tagName='span' and c.tagName='a' return c")
 
+    def test_attribute_selector(self):
+        query = cc.calculate_neo4j_query('div[herp=derp]')
+        self.assertEqual(query.__str__(), "start a=node(*) where has(a.herp) and a.herp='derp' and a.tagName='div' return a")
 
 
 if __name__ == '__main__':

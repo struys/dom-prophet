@@ -22,30 +22,27 @@ def _calculate_neo4j_query(parsed_css, query, last_var=None):
         match = MatchRule(new_last_var, next_var, 'PARENT')
 
         query.match_clause.append(match)
-        
+
         _calculate_neo4j_query(parsed_css.subselector, query, last_var=query.last_created_var)
-        
+
     if isinstance(parsed_css, cssselect.parser.Hash):
         query.where_clause.append(HasId(last_var, parsed_css.id))
         _calculate_neo4j_query(parsed_css.selector, query, last_var=last_var)
-    if isinstance(parsed_css, cssselect.parser.Class):
+
+    elif isinstance(parsed_css, cssselect.parser.Attrib):
+        query.where_clause.append(HasAttribute(last_var, parsed_css.attrib, parsed_css.value))
+        _calculate_neo4j_query(parsed_css.selector, query, last_var=last_var)
+
+    elif isinstance(parsed_css, cssselect.parser.Class):
         query.where_clause.append(HasClass(last_var, parsed_css.class_name))
         _calculate_neo4j_query(parsed_css.selector, query, last_var=last_var)
+
     elif isinstance(parsed_css, cssselect.parser.Element):
         if parsed_css.element is not None:
             expr1 = "{0}.tagName='{1}'".format(last_var, parsed_css.element)
             query.where_clause.append(expr1)
 
         query.return_clause = ReturnClause(last_var)
-
-def parse(css_selector):
-
-    if isinstance(parsed_css, Element):
-        var = Variable()
-        return Query(
-            Start(var),
-            return_value=ReturnClause(var)
-        )
 
 def var_name_generator():
     def letter_gen():
@@ -80,20 +77,28 @@ class HasClass(object):
             "any(class in {var}.class where class='{class_name}')".format(var=self.var, class_name=self.class_name)
         ))
 
-class HasId(object):
-
-    def __init__(self, var, id):
+class HasAttribute(object):
+    def __init__(self, var, attr, value):
         self.var = var
         self.id = id
+        self.attr = attr
+        self.value = value
 
     def __str__(self):
         return str(Conjunct(
-            HasExpression(str(self.var) + '.id'),
-            "{var}.id='{id}'".format(var=self.var, id=self.id)
+            HasExpression(str(self.var) + '.' + self.attr),
+            "{var}.{attr}='{value}'".format(
+                var=self.var,
+                attr=self.attr,
+                value=self.value,
+            )
         ))
 
-class Node(object):
+class HasId(HasAttribute):
+    def __init__(self, var, id):
+        super(HasId, self).__init__(var, 'id', id)
 
+class Node(object):
     def __init__(self, var):
         self.var = var
 
@@ -170,14 +175,14 @@ class ReturnClause(object):
         return 'return {var}'.format(var=self.var)
 
 class Query(object):
-    
+
     def __init__(self, gen, match_clause=None, where_clause=None, return_clause=None):
         self.gen = gen
         self.start = Start(self.get_var(), Node('*'))
         self.match_clause = match_clause
         self.where_clause = where_clause
         self.return_clause = return_clause
-        
+
     def get_var(self):
         self.last_created_var = Variable(self.gen)
         return self.last_created_var
