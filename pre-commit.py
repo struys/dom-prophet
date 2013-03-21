@@ -162,6 +162,7 @@ if __name__ == '__main__':
     if opts.install:
         pre_commit_path = get_pre_commit_path()
         shutil.copyfile(__file__, pre_commit_path)
+        os.chmod(pre_commit_path, 0755)
         print 'Installed pre commit to %s' % pre_commit_path
         sys.exit(0)
     elif opts.uninstall:
