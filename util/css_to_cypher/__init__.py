@@ -1,7 +1,6 @@
 import cssselect
 import cssselect.parser
 import string
-from itertools import chain
 
 def calculate_neo4j_query(css_selector):
     gen = var_name_generator()
