@@ -10,13 +10,13 @@ jQuery('*').on('mouseenter click', function(e) {
         cookie: document.cookie
     };
 
-    while(next != null) {
+    while (next != null) {
         var attributes = [];
         var obj = {
             'tagName': next.tagName,
             'attributes': attributes
         };
-        for(var i = 0; i < next.attributes.length; i++) {
+        for (var i = 0; i < next.attributes.length; i++) {
             attributes.push([next.attributes[i].name, next.attributes[i].value]);
         }
         next = next.parentElement;
@@ -36,22 +36,22 @@ var Poster = function() {
 };
 
 Poster.prototype.handleLoad = function() {
-    if(window.localStorage) {
+    if (window.localStorage) {
         var stringLog = window.localStorage['click-tracker-log'];
-        if(stringLog) {
+        if (stringLog) {
             this.log = stringLog;
         }
     }
 }
 
 Poster.prototype.handleUnload = function() {
-    if(window.localStorage) {
+    if (window.localStorage) {
         window.localStorage['click-tracker-log'] = this.log;
     }
 };
 
 Poster.prototype.postLog = function() {
-    if(this.log.length === 0) {
+    if (this.log.length === 0) {
         return;
     }
 
