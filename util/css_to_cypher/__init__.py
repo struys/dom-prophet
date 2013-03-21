@@ -5,11 +5,10 @@ from itertools import chain
 
 def calculate_neo4j_query(css_selector):
     gen = var_name_generator()
-    var = Variable(gen)
-    query = Query(gen, start=Start(var, Node('*')), where_clause=[], match_clause=[])
+    query = Query(gen, where_clause=[], match_clause=[])
     parsed_css = cssselect.parse(css_selector)[0].parsed_tree
     
-    _calculate_neo4j_query(parsed_css, query, last_var=var)
+    _calculate_neo4j_query(parsed_css, query, last_var=query.last_created_var)
     
     return query
 
@@ -19,18 +18,14 @@ def _calculate_neo4j_query(parsed_css, query, last_var=None):
     
     if isinstance(parsed_css, cssselect.parser.CombinedSelector):
         element1 = parsed_css.selector
-        
-#        if isinstance(element1, cssselect.parser.CombinedSelector):
-#            last_var = Variable(query.gen)
-#        else:
-#            next_var = Variable(query.gen)
-        
-        next_var = Variable(query.gen)
         _calculate_neo4j_query(element1, query, last_var=last_var)
-        
-        match = MatchRule(last_var, next_var, 'PARENT')
+        new_last_var = query.last_created_var
+        next_var = query.get_var()
+        match = MatchRule(new_last_var, next_var, 'PARENT')
         query.match_clause.append(match)
-        _calculate_neo4j_query(parsed_css.subselector, query, last_var=next_var)
+        
+        _calculate_neo4j_query(parsed_css.subselector, query, last_var=query.last_created_var)
+        
     if isinstance(parsed_css, cssselect.parser.Hash):
         query.where_clause.append(HasId(last_var, parsed_css.id))
         _calculate_neo4j_query(parsed_css.selector, query, last_var=last_var)
@@ -177,12 +172,16 @@ class ReturnClause(object):
     
 class Query(object):
     
-    def __init__(self, gen, start, match_clause=None, where_clause=None, return_clause=None):
+    def __init__(self, gen, match_clause=None, where_clause=None, return_clause=None):
         self.gen = gen
-        self.start = start
+        self.start = Start(self.get_var(), Node('*'))
         self.match_clause = match_clause
         self.where_clause = where_clause
         self.return_clause = return_clause
+        
+    def get_var(self):
+        self.last_created_var = Variable(self.gen)
+        return self.last_created_var
         
     def __str__(self):
         buf = '{start}'.format(start=self.start)

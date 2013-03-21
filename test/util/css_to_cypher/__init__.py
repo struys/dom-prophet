@@ -27,35 +27,7 @@ class TestVariableGenerator(unittest.TestCase):
         self.assertEqual(gen.next(), 'ba')
         self.assertEqual(gen.next(), 'bb')
         self.assertEqual(gen.next(), 'bc')
-            
 
-class TestParser(unittest.TestCase):
-    
-    def test_simple(self):
-        gen = var_name_generator()
-        var = cc.Variable(gen)
-        x = cc.Query(
-            cc.Start(
-                  var,
-                  cc.Node('*')
-            ),
-            cc.MatchClause(
-                [cc.MatchRule(
-                    cc.Variable(gen),
-                    cc.Variable(gen),
-                    'CHILD',
-                    dist="single"
-                )]
-            ),
-            None,
-            cc.ReturnClause(
-                    var
-            )
-        )
-        
-        self.assertEqual(x.__str__(), 'start a=node(*) match (b)-[:CHILD]->(c) return a')
-        
-        
 class TestParse(unittest.TestCase):
     
     def test_element_selector(self):
@@ -80,10 +52,9 @@ class TestParse(unittest.TestCase):
         
         self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT*]->(b) where a.tagName='div' and b.tagName='span' return b")
 
-#    def test_many_combined_selector(self):
-#        query = cc.calculate_neo4j_query('div span a')
-#        
-#        self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT*]->(b), (b)-[:PARENT*]->(c) where a.tagName='div' and b.tagName='span' and c.tagName='a' return b")
+    def test_many_combined_selector(self):
+        query = cc.calculate_neo4j_query('div span a')
+        self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT*]->(b), (b)-[:PARENT*]->(c) where a.tagName='div' and b.tagName='span' and c.tagName='a' return c")
 
 
 
