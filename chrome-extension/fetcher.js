@@ -2,14 +2,14 @@
 jQuery('*').on('mouseenter click', function(e) {
     var next = e.target;
     var path = [];
-    
+
     var logLine = {
-    	eventType: e.type,
-    	elements: [],
-    	url: document.location.href,
-    	cookie: document.cookie
+        eventType: e.type,
+        elements: [],
+        url: document.location.href,
+        cookie: document.cookie
     };
-    
+
     while(next != null) {
         var attributes = [];
         var obj = {
@@ -22,47 +22,47 @@ jQuery('*').on('mouseenter click', function(e) {
         next = next.parentElement;
         logLine.elements.push(obj)
     }
-    
-	poster.log.push(logLine);
+
+    poster.log.push(logLine);
 });
 
 
 var Poster = function() {
-	this.log = [];
-	$(window).unload(this.handleUnload.bind(this));
-	this.handleLoad();
+    this.log = [];
+    $(window).unload(this.handleUnload.bind(this));
+    this.handleLoad();
 
-	setInterval(this.postLog.bind(this), 5000);
+    setInterval(this.postLog.bind(this), 5000);
 };
 
 Poster.prototype.handleLoad = function() {
-	if(window.localStorage) {
-		var stringLog = window.localStorage['click-tracker-log'];
-		if(stringLog) {
-			this.log = stringLog;
-		}
-	}
+    if(window.localStorage) {
+        var stringLog = window.localStorage['click-tracker-log'];
+        if(stringLog) {
+            this.log = stringLog;
+        }
+    }
 }
 
 Poster.prototype.handleUnload = function() {
-	if(window.localStorage) {
-		window.localStorage['click-tracker-log'] = this.log;
-	}
+    if(window.localStorage) {
+        window.localStorage['click-tracker-log'] = this.log;
+    }
 };
 
 Poster.prototype.postLog = function() {
-	if(this.log.length === 0) {
-		return;
-	}
+    if(this.log.length === 0) {
+        return;
+    }
 
-	var log = this.log;
-	this.log = [];
-	$.ajax('http://127.0.0.1:5000/log', { 
-		method: 'POST',
-		data: {
-			'log': JSON.stringify(log)
-		}
-	});
+    var log = this.log;
+    this.log = [];
+    $.ajax('http://127.0.0.1:5000/log', {
+        method: 'POST',
+        data: {
+            'log': JSON.stringify(log)
+        }
+    });
 };
 
 poster = new Poster();
