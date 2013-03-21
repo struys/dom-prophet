@@ -1,4 +1,11 @@
-from flask import Flask, request
+import os.path
+
+from flask import Flask
+from flask import abort
+from flask import request
+from flask import render_template
+from flask import Response
+
 app = Flask(__name__)
 
 log_file_path = '../log'
@@ -30,6 +37,31 @@ def log_length():
             pass
 
     return str(i + 1)
+
+@app.route('/', methods=['GET'])
+def index():
+    '''Expects parameter "q"'''
+    return render_template('index.htm', search_term=request.args.get('q', ''))
+
+EXTENSIONS_TO_MIMETYPES = {
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+}
+
+@app.route('/<path:path>')
+def catch_all(path):
+    if not app.debug:
+        abort(404)
+    try:
+        with open(path, 'r') as f:
+            extension = os.path.splitext(path)[1]
+            return Response(
+                f.read(),
+                mimetype=EXTENSIONS_TO_MIMETYPES.get(extension, 'text/html')
+            )
+    except IOError, e:
+        abort(404)
+        return
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug = True)
