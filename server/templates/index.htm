@@ -10,43 +10,44 @@
 <div class="wrap">
   <div class="filters">
 
-  	<form>
-	  	<label class="search">
-	  	<h2>CSS selector</h2>
-	  	<input name="css" type="text" value="{{ search_term }}"></input>
-	  	</label>
+    <form>
+      <label class="search">
+        <h2>CSS selector</h2>
+        <input name="css" type="text" value="{{ search_term }}"></input>
+      </label>
 
-	  	<label class="search">
-	  		<h2>Servlet</h2>
-	  		<select>
-	  			<option name="home">home</option>
-	  			<option name="home">biz_details</option>
-	  		</select>
-	  	</label>
+      <label class="search">
+        <h2>Servlet</h2>
+        <select>
+          <option name="home">home</option>
+          <option name="home">biz_details</option>
+        </select>
+      </label>
 
-	  	<button type="submit">Search</button>
-	</form>
+      <button type="submit">Search</button>
+    </form>
 
-	<form action="/simulator">
-		<label class="search">
-		<h2>YUV search</h2>
-		<input name="yuv" type="text" value="{{ search_user }}"></input>
-		</label>
-		<button type="submit">Simulate</button>
-	</form>
+    <form action="/simulator">
+      <label class="search">
+        <h2>YUV search</h2>
+        <input name="yuv" type="text" value="{{ search_user }}"></input>
+      </label>
+      <button type="submit">Simulate</button>
+    </form>
   </div>
 
   <div class="main-content">
 
-  <ul class="tabs">
-  	<li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
-  	<li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
-  	<li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator">Simulator</a></li>
-  </ul>
+
+    <ul class="tabs">
+      <li {% if tab == 'html' %} class="selected" {% endif %}><a href="/?css={{ search_term }}">HTML</a></li>
+      <li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric?css={{ search_term }}">Metrics</a></li>
+      <li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator?css={{ search_term }}">Simulator</a></li>
+    </ul>
 
   <div class="tabbed-content">
   	{% if tab == 'html' %}
-  		<iframe src="/html_nonsense"></iframe>
+  		<iframe src="/html_nonsense?q={{ search_term }}"></iframe>
   	{% elif tab == 'metric' %}
 		{% if query %}
     		<div class="module query">

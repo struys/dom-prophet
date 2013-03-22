@@ -1,6 +1,4 @@
 $(function() {
-	
-	
 	var userBreakDown = $('.user-breakdown');
 	var histogram = $('.histogram');
 	
@@ -41,5 +39,5 @@ $(function() {
 			]
 		})
 	}
-	
+
 });
