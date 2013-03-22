@@ -109,7 +109,7 @@
         // Create stats card.
         var card = document.createElement('div');
         card.className = 'stat-card-for-element';
-        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>mouse-enters: ' + mouseenterCount + '</div>';
+        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouse-enters: ' + mouseenterCount + '</div>';
         $(card).css({
             'color': '#FFF',
             'position': 'absolute',
@@ -124,7 +124,7 @@
         });
 
         // Remove old cards, add new card.
-        $('.stat-card-for-element').remove();
+        //$('.stat-card-for-element').remove();
         targetElement.appendChild(card);
         document.getElementsByTagName('body')[0].appendChild(card);
     };
