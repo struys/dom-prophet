@@ -60,16 +60,49 @@ def metric():
     query = calculate_neo4j_query(search_term) if search_term else None
 
     results = None
+    percent_breakdown = None
+    hit_count = None
 
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
+        
+        percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
+        
+    children = []
     
+    
+    if results:
+        hit_count = get_hit_counts(graph_db, results)
+    
+        for r in [result[0] for result in results]:
+            related = r.get_single_related_node(neo4j.Direction.OUTGOING, 'PARENT')
+            
+            if related is None:
+                continue
+            
+            selector = related['tagName'].lower()
+            
+            def has_id(selector):
+                return 'id' in related and related['id'] is not None and related['id'] != ''
+                
+            if has_id(selector):
+                selector += '#' + related['id']
+            
+            if len(related['classArray']) > 0 and related['classArray'][0] != '':
+                if not has_id(selector):
+                    selector += '.'
+                selector += '.'.join(related['classArray'])
+            
+            children.append(selector)
+        
     env = {
         'tab': 'metric',
         'search_term': search_term,
         'query': query,
-        'results': [result[0]['classArray'] for result in results] if results else None
+        'percent_breakdown': percent_breakdown,
+        'children': set(children),
+        'hit_count': hit_count
     }
     
     return render_template('index.htm', **env)   
@@ -155,6 +188,49 @@ def catch_all(path):
     except IOError:
         abort(404)
         return
+    
+    
+def get_hit_counts(graph_db, results):
+    return_events = {
+        'mouseenter': 0,
+        'click': 0
+    } 
+    
+    
+    for result in [r[0] for r in results]:
+        events = result.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
+        for event in events:
+            if event['eventType'] == 'mouseenter':
+                return_events['mouseenter'] += 1
+            elif event['eventType'] == 'click':
+                return_events['click'] += 1
+                
+    return return_events
+    
+def get_percentage_logged_in_vs_out(graph_db, results):
+    return_val = {
+        'logged_in': 0,
+        'logged_out': 0
+    }
+    
+    for result in [r[0] for r in results]:
+            body_node = cypher.execute(graph_db, """
+                start a=node({id}) 
+                match b-[:PARENT*]->(a) 
+                where has(b.tagName) and b.tagName='BODY' 
+                return b
+            """.format(id=result.id))[0]
+            
+            if len(body_node) == 0:
+                continue
+            
+            body_node = body_node[0][0]
+            
+            if body_node:
+                return_val['logged_in'] += 1 if 'logged-in' in body_node['classArray'] else 0
+                return_val['logged_out'] += 1 if 'logged-out' in body_node['classArray'] else 0
+        
+    return return_val
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug = True)

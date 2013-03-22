@@ -40,23 +40,64 @@
   		<iframe src="/html_nonsense"></iframe>
   	{% elif tab =='metric' %}
 		{% if query %}
-    		Query: {{ query }}<br>
+    		<div class="module query">
+    			<h2>Neo4j Query</h2>
+    			<span>{{ query }}</span>
+    		</div>
   		{% endif %}
-
-  		{% if results %}
-    		<ul>
-      		{% for result in results %}
-        		<li>{{ result }}</li>
-      		{% endfor %}
-    		</ul>
-  		{% endif %}		
+  		
+  		<section>
+	  		{% if percent_breakdown %}
+	  			<div class="module users">
+		  			<h2>User Breakdown</h2>
+		  			<canvas class="user-breakdown" width="400" height="400"></canvas>
+		  			<div class="legend">
+		  				<span class="logged-out"><span></span>Logged Out</span>
+		  				<span class="logged-in"><span></span>Logged In</span>
+		  			</div>
+	  			</div>
+	  			<script>
+	  				window.percentBreakdown = {{percent_breakdown|tojson|safe}}
+	  			</script>
+	  		{% endif %}
+	  		
+	  		{% if hit_count %}
+	  			<div class="module hits">
+		  			<h2>Hit Count</h2>
+		  			<div>
+		  				
+		  				{% if hit_count['click'] > 0 %}
+		  					<div>Clicks: {{hit_count['click']}}</div>
+		  				{% endif %}
+		  				{% if hit_count['mouseenter'] > 0 %}
+		  					<div>Mouse Enters: {{hit_count['mouseenter']}}</div>
+		  				{% endif %}
+		  				
+		  			</div>
+	  			</div>
+	  		{% endif %}
+	  		
+	  		{% if children %}
+	  			<div class="module children">
+	  				<h2>Direct Children</h2>
+			  		<ul>
+			      		{% for child in children %}
+			        		<li>{{ child }}</li>
+			      		{% endfor %}
+		    		</ul>
+	    		</div>
+	  		{% endif %}
+  		</section>	
   	{% endif %}
   </div>
   
   </div>
 </div>
 
+
+<script src="js/Chart.js"></script>
 <script src="js/jquery-1.9.1.min.js"></script>
+<script src="js/main.js"></script>
   
 </body>
 </html>
