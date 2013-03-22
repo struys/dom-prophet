@@ -149,21 +149,25 @@ def html_nonsense():
 @app.route('/path_stats', methods=['GET'])
 def path_stats():
     """Get statistics about events for a given path."""
-    path_elements = request.args.get('pathElements', '')
-    if not path_elements:
-        return
+    search_term = request.args.get('cssPath', '')
+    query = calculate_neo4j_query(search_term) if search_term else None
 
-    # TODO: Implement backend.
-    path_elements = json.loads(path_elements)
-#    graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
+    results = None
+    percent_breakdown = None
+    hit_count = None
 
-    import math
-    import random
-    target_data = {
-        'clickCount': math.floor(100 * random.random()),
-        'mouseoverCount': 9001
-    }
-    return json.dumps(target_data)
+    if query is not None:
+        graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
+        results = cypher.execute(graph_db, str(query))[0]
+        percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
+        hit_count = get_hit_counts(graph_db, results)
+        target_data = {
+            'clickCount': hit_count['click'],
+            'mouseenterCount': hit_count['mouseenter']
+        }
+        return json.dumps(target_data)
+
+    abort(404)
 
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
@@ -196,7 +200,6 @@ def get_hit_counts(graph_db, results):
         'mouseenter': 0,
         'click': 0
     }
-
 
     for result in [r[0] for r in results]:
         events = result.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
