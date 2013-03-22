@@ -1,4 +1,5 @@
 import cStringIO
+import json
 import os.path
 
 from flask import Flask
@@ -189,6 +190,29 @@ def html_nonsense():
 
     return html_builder.getvalue()
 
+@app.route('/path_stats', methods=['GET'])
+def path_stats():
+    """Get statistics about events for a given path."""
+    path_elements = request.args.get('pathElements', '')
+    if not path_elements:
+        return
+
+    path_elements = json.loads(path_elements)
+
+    target_data = {
+        'clickCount': 42,
+        'mouseoverCount': 9001
+    }
+    return json.dumps(target_data)
+
+    #graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
+    #results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
+    #root = results[0][0][0]
+    #string_wrapper = { 's': '' }
+    #node_helper(root, 0, string_wrapper)
+
+    #return '<!doctype html>\n{0}'.format(string_wrapper['s'])
+
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
     '.css': 'text/css',
@@ -214,7 +238,6 @@ def catch_all(path):
     except IOError:
         abort(404)
         return
-
 
 def get_hit_counts(graph_db, results):
     return_events = {

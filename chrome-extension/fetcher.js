@@ -1,4 +1,4 @@
-(function () {
+(function() {
     'use strict';
 
     var poster,
@@ -8,7 +8,7 @@
 
     // XXX: this is jacked from quirksmode.org and I don't really like it
     function readCookie(name) {
-        var nameEQ = name + "=";
+        var nameEQ = name + '=';
         var ca = document.cookie.split(';');
         for (var i = 0; i < ca.length; i += 1) {
             var c = ca[i];
@@ -23,7 +23,8 @@
     }
 
     function prepareLogLine(logLine) {
-        logLine.uniqueRequestId = yConfig.uniqueRequestId || yConfig.uniqueRequestID;
+        logLine.uniqueRequestId = (
+            yConfig.uniqueRequestId || yConfig.uniqueRequestID);
     }
 
     window.addEventListener('message', function(event) {
@@ -57,32 +58,68 @@
         document.body.appendChild(script);
     } ());
 
-    jQuery('*').on('mouseenter click', function(e) {
-        var next = e.target;
-        var path = [];
+    // Recognize Query Click requesting DOM Elt Details.
+    jQuery('*').on('click', function(e) {
+      if (!e.shiftKey) {
+          return;
+      }
+      // Process Shift-Click for Target Element Details.
+      var pathToTarget = getPathToElement(e.target);
+      $.ajax('http://127.0.0.1:5000/path_stats', {
+          method: 'GET',
+          data: {
+              'pathElements': JSON.stringify(pathToTarget)
+          },
+          success: handleResponse(e.target)
+      });
 
+      return false;
+    });
+
+    /**
+     * Handle successful response for data about target element.
+     * @param {Object} targetElement The target element to get stats for.
+     */
+    function handleResponse(targetElement) {
+        return function(response) {
+            // Handle the path_stats response for the target element.
+            console.log('GET 127.0.0.1:5000/path_stats success:')
+            console.log(response);
+        };
+    };
+
+    /**
+     * Get the path from the HTML root to the element.
+     * @param {Object} element The dom element.
+     * @return {Array} pathElements The path from HTML node to target node.
+     */
+    function getPathToElement(element) {
+        var pathElements = [];
+        while (element != null) {
+            var attributes = [];
+            var obj = {
+                tagName: element.tagName,
+                attributes: attributes
+            };
+            for (var i = 0; i < element.attributes.length; i++) {
+                attributes.push([element.attributes[i].name, element.attributes[i].value]);
+            }
+            element = element.parentElement;
+            pathElements.push(obj);
+        }
+        return pathElements;
+    }
+
+    jQuery('*').on('mouseenter click', function(e) {
         var logLine = {
             eventType: e.type,
             timeStamp: Date.now(),
-            elements: [],
+            elements: getPathToElement(e.target),
             url: document.location.href,
             cookie: document.cookie,
             pathName: window.location.pathname,
             yuv: readCookie('yuv')
         };
-
-        while (next != null) {
-            var attributes = [];
-            var obj = {
-                'tagName': next.tagName,
-                'attributes': attributes
-            };
-            for (var i = 0; i < next.attributes.length; i++) {
-                attributes.push([next.attributes[i].name, next.attributes[i].value]);
-            }
-            next = next.parentElement;
-            logLine.elements.push(obj);
-        }
 
         if (yConfig) {
             prepareLogLine(logLine);
