@@ -75,6 +75,7 @@
           success: handleResponse(e)
       });
 
+      e.stopPropagation();
       return false;
     });
 
@@ -89,40 +90,53 @@
             response = JSON.parse(response);
 
             createStatCardForElement(
-                targetElement, e.clientX, e.clientY, response.clickCount, response.mouseenterCount);
+                targetElement, e.pageX, e.pageY, response.clickCount, response.mouseenterCount);
         };
     };
 
     /**
      * Creates a stat-card and places it nearby
-     * where the user clicked at (offsetX, offsetY).
+     * where the user clicked at (pageX, pageY).
      * This function is super ugly, don't look at it too closely or you may go blind.
      * @param {domNode} targetElement The clicked element.
-     * @param {number} offsetX The offsetX of the click event.
-     * @param {number} offsetY The offsetY of the click event.
+     * @param {number} pageX The pageX of the click event.
+     * @param {number} pageY The pageY of the click event.
      * @param {number} clickCount Number of times the element was clicked.
      * @param {number} mouseenterCount Number of times element was moused over.
      */
-    function createStatCardForElement(targetElement, offsetX, offsetY, clickCount, mouseenterCount) {
+    function createStatCardForElement(targetElement, pageX, pageY, clickCount, mouseenterCount) {
         // Remove ugly selection of part of element text on shift-click.
         targetElement.style['-webkit-user-select'] = 'none';
         // Create stats card.
         var card = document.createElement('div');
         card.className = 'stat-card-for-element';
-        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouse-enters: ' + mouseenterCount + '</div>';
+        /*card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouse-enters: ' + mouseenterCount + '</div>';
         $(card).css({
             'color': '#FFF',
             'position': 'absolute',
-            'top': offsetY + 'px',
-            'left': offsetX + 10 + 'px',
+            'top': pageY + 'px',
+            'left': pageX + 10 + 'px',
             'fontSize': '16px',
             'lineHeight': '140%',
             'backgroundColor': 'rgba(255, 0, 0, .7)',
             'zIndex': 9001,
             'padding': '5px',
             'border-radius': '5px'
+        });*/
+        card.innerHTML = '' + clickCount;
+        $(card).css({
+            'color': '#FFF',
+            'position': 'absolute',
+            'top': pageY + 'px',
+            'left': pageX + 10 + 'px',
+            'fontSize': '36px',
+            'lineHeight': '140%',
+            'backgroundColor': 'rgba(255, 0, 0, .7)',
+            'zIndex': 9001,
+            'padding': '4px',
+            'border-radius': '40px',
+            'border-top-left-radius': '0px'
         });
-
         // Remove old cards, add new card.
         //$('.stat-card-for-element').remove();
         targetElement.appendChild(card);
