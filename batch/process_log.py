@@ -4,9 +4,8 @@
 """
 
 
-import Cookie
 import json
-from py2neo import neo4j, cypher, Direction
+from py2neo import neo4j, cypher
 
 graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
 graph_db.clear()
@@ -111,17 +110,18 @@ def fetch_user_node(uuid):
         user_node: The neo4j node representing the user.
     """
 
-   query = """
-            START
-                user=node(*)
-            WHERE
-                has(user.uuid)
-                and user.uuid=%s
-            RETURN user""" % uuid
+    query = "START user=node(*) WHERE has(user.uuid) and user.uuid='%s' RETURN user;" % uuid
 
-    user_node = cypher(graph_db, query)[0]
+    user_node = cypher.execute(graph_db, query)[0]
 
-    if not user_node:
+    create = False
+    if not len(user_node):
+        create = True
+
+    if len(user_node):
+        user_node = user_node[0][0]
+
+    if create:
         user_node = graph_db.create({
             'uuid': uuid
         })[0]
@@ -139,7 +139,10 @@ def connect_user_with_event_node(uuid, event_node):
     Returns:
         user_node: The neo4j node representing the user.
     """
+
+
     user_node = fetch_user_node(uuid)
+
     user_node.create_relationship_to(event_node, 'ACTION')
     event_node.create_relationship_to(user_node, 'ACTOR')
 
