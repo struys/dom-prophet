@@ -12,7 +12,7 @@
         }
     }, false);
 
-    jQuery(function() {
+    (function() {
         var script = document.createElement('script');
         script.appendChild(document.createTextNode([
             '(function () {',
@@ -26,7 +26,7 @@
             '} ());'
         ].join('')));
         document.body.appendChild(script);
-    });
+    } ());
 
     jQuery('*').on('mouseenter click', function(e) {
         var next = e.target;
