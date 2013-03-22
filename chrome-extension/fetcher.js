@@ -2,13 +2,26 @@
     'use strict';
 
     var poster,
+        logBackLog = [],
         yConfig = null,
         isYConfig = false;
 
+    function prepareLogLine(logLine) {
+        logLine.uniqueRequestId = yConfig.uniqueRequestId || yConfig.uniqueRequestID;
+    }
+
     window.addEventListener('message', function(event) {
+        var logLine;
+
         if (event.data.yConfig) {
             yConfig = event.data.yConfig;
             isYConfig = event.data.isYConfig;
+
+            while (logBackLog.length) {
+                logLine = logBackLog.pop();
+                prepareLogLine(logLine);
+                poster.log.push(logLine);
+            }
         }
     }, false);
 
@@ -36,8 +49,7 @@
             eventType: e.type,
             elements: [],
             url: document.location.href,
-            cookie: document.cookie,
-            uniqueRequestId: yConfig.uniqueRequestId || yConfig.uniqueRequestID
+            cookie: document.cookie
         };
 
         while (next != null) {
@@ -53,7 +65,12 @@
             logLine.elements.push(obj);
         }
 
-        poster.log.push(logLine);
+        if (yConfig) {
+            prepareLogLine(logLine);
+            poster.log.push(logLine);
+        } else {
+            logBackLog.push(logLine);
+        }
     });
 
     var Poster = function() {
