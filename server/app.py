@@ -101,7 +101,7 @@ def node_helper(node, depth, string_wrapper):
                 </head>
             '''
 
-    for child in node.get_related_nodes(neo4j.Direction.OUTGOING):
+    for child in node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT'):
         node_helper(child, depth + 1, string_wrapper)
 
     if node_name != 'base':
