@@ -75,7 +75,7 @@ def create_event_for_target_node(target_node, log_line):
 
     # Add relationship between target node and event node.
 
-    return event_node
+    #return event_node
 
 def upsert_to_graph(lines):
     """Read each line and insert a new tree under the base node if the tree must
@@ -95,10 +95,10 @@ def upsert_to_graph(lines):
         target_node = createEventPath(reversed(log_line['elements']))
 
         create_event_for_target_node(target_node, log_line)
-        eventInfo = {
-            'eventType': line['eventType'],
-            'url': line['url']
-        }
+#        eventInfo = {
+#            #'eventType': line['eventType'],
+#            'url': line['url']
+#        }
 
 
 for log_line in open('log', 'r'):

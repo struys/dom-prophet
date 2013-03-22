@@ -58,12 +58,21 @@ def index():
         results = cypher.execute(graph_db, str(query))[0]
 
     env = {
+        'tab': 'html',
         'search_term': search_term,
         'query': query,
         'results': [result[0]['classArray'] for result in results] if results else None
     }
 
     return render_template('index.htm', **env)
+
+@app.route('/metric', methods=['GET'])
+def metric():
+    env = {
+        'tab': 'metric'
+    }
+    
+    return render_template('index.htm', **env)   
 
 def node_helper(node, depth, string_wrapper):
     properties = node.get_properties()
