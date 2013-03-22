@@ -9,13 +9,13 @@
 
 <div class="wrap">
   <div class="filters">
-  
+
   	<form>
 	  	<label class="search">
 	  	<h2>CSS selector</h2>
 	  	<input name="css" type="text" value="{{ search_term }}"></input>
 	  	</label>
-	  	
+
 	  	<label class="search">
 	  		<h2>Servlet</h2>
 	  		<select>
@@ -23,29 +23,37 @@
 	  			<option name="home">biz_details</option>
 	  		</select>
 	  	</label>
-	  	
+
 	  	<button type="submit">Search</button>
-	</form> 
+	</form>
+
+	<form action="/simulator">
+		<label class="search">
+		<h2>YUV search</h2>
+		<input name="yuv" type="text" value="{{ search_user }}"></input>
+		</label>
+		<button type="submit">Simulate</button>
+	</form>
   </div>
-  
+
   <div class="main-content">
-  
+
   <ul class="tabs">
   	<li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
   	<li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
+  	<li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator">Simulator</a></li>
   </ul>
-  
+
   <div class="tabbed-content">
   	{% if tab == 'html' %}
   		<iframe src="/html_nonsense"></iframe>
-  	{% elif tab =='metric' %}
+  	{% elif tab == 'metric' %}
 		{% if query %}
     		<div class="module query">
     			<h2>Neo4j Query</h2>
     			<span>{{ query }}</span>
     		</div>
   		{% endif %}
-  		
   		<section>
 	  		{% if percent_breakdown %}
 	  			<div class="module users">
@@ -88,9 +96,17 @@
 	    		</div>
 	  		{% endif %}
   		</section>	
+	{% elif tab == 'simulator' %}
+		{% if yuv %}
+		  Simulator for: {{ yuv }}
+		{% endif %}
+
+		{% if results %}
+			{{ results }}
+		{% endif %}
   	{% endif %}
   </div>
-  
+
   </div>
 </div>
 
@@ -98,6 +114,6 @@
 <script src="js/Chart.js"></script>
 <script src="js/jquery-1.9.1.min.js"></script>
 <script src="js/main.js"></script>
-  
+
 </body>
 </html>

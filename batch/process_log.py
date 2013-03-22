@@ -1,6 +1,10 @@
 """
     ONLY run this batch if you intend on wiping away your data.
     This deletes *everything* in the graph and rebuilds all paths from log file.
+
+    TODO: Add an option to read from a streaming file, and attempt to figure out
+    what data needs to be unique, so we can get rid of the graph_db.clear() function
+    at the top of this module.
 """
 
 
@@ -92,6 +96,7 @@ def create_event_for_target_node(log_line, target_node):
     event_properties = {
         'eventType': log_line['eventType'],
         'url': log_line['url'],
+        'timeStamp': log_line['timeStamp'],
         'pathName': log_line.get('pathName', '')
     }
     event_node = graph_db.create(event_properties)[0]
@@ -161,6 +166,7 @@ def upsert_to_graph(lines):
             log_line['eventType']
             log_line['url']
             log_line['pathName']
+            log_line['timeStamp']
         except TypeError:
             continue
 

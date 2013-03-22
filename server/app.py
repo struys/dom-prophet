@@ -8,6 +8,7 @@ from flask import Response
 from py2neo import neo4j, cypher
 
 from util.css_to_cypher import calculate_neo4j_query
+from util.events import get_event_nodes_for_yuv
 
 app = Flask(__name__)
 
@@ -66,7 +67,6 @@ def metric():
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
-        
         percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
         
     children = []
@@ -95,7 +95,7 @@ def metric():
                 selector += '.'.join(related['classArray'])
             
             children.append(selector)
-        
+
     env = {
         'tab': 'metric',
         'search_term': search_term,
@@ -104,8 +104,25 @@ def metric():
         'children': set(children),
         'hit_count': hit_count
     }
-    
-    return render_template('index.htm', **env)   
+
+    return render_template('index.htm', **env)
+
+@app.route('/simulator', methods=['GET'])
+def simulator():
+    search_user = request.args.get('yuv', '')
+
+    if search_user != '':
+        nodes = get_event_nodes_for_yuv(search_user)
+    else:
+        nodes = []
+
+    env = {
+        'tab': 'simulator',
+        'search_user': search_user,
+        'results': nodes
+    }
+
+    return render_template('index.htm', **env)
 
 def node_helper(node, depth, string_wrapper):
     properties = node.get_properties()
