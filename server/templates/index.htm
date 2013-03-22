@@ -69,20 +69,22 @@
 	  			</script>
 	  		{% endif %}
 	  		
-	  		{% if hit_count %}
-	  			<div class="module hits">
-		  			<h2>Hit Count</h2>
-		  			<div>
-		  				
-		  				{% if hit_count['click'] > 0 %}
-		  					<div>Clicks: {{hit_count['click']}}</div>
+	  		{% if histogram %}
+	  			<div class="module hits-over-time">
+		  			<h2>Hits Over Time</h2>
+		  			<canvas class="histogram" width="500" height="400"></canvas>
+		  			<div class="legend">
+			  			{% if hit_count['click'] > 0 %}
+		  					<div class="click"><span></span>{{hit_count['click']}} Clicks</div>
 		  				{% endif %}
 		  				{% if hit_count['mouseenter'] > 0 %}
-		  					<div>Mouse Enters: {{hit_count['mouseenter']}}</div>
+		  					<div class="mouseenter"><span></span>{{hit_count['mouseenter']}} Mouse Enters</div>
 		  				{% endif %}
-		  				
-		  			</div>
-	  			</div>
+	  				</div>
+		  		</div>
+				<script>
+	  				window.histogram = {{histogram|tojson|safe}}
+	  			</script>
 	  		{% endif %}
 	  		
 	  		{% if children %}

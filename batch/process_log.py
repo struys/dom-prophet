@@ -167,7 +167,7 @@ def upsert_to_graph(lines):
             log_line['url']
             log_line['pathName']
             log_line['timeStamp']
-        except TypeError:
+        except KeyError:
             continue
 
         ## TODO(wstyke): Do we want to keep track of counts of visits to the nodes
