@@ -137,8 +137,8 @@
         while (element != null) {
             var attributes = [];
             var obj = {
-                'tagName': element.tagName,
-                'attributes': attributes
+                tagName: element.tagName,
+                attributes: attributes
             };
             for (var i = 0; i < element.attributes.length; i++) {
                 attributes.push([element.attributes[i].name, element.attributes[i].value]);
@@ -159,19 +159,6 @@
             pathName: window.location.pathname,
             yuv: readCookie('yuv')
         };
-
-        /*while (next != null) {
-            var attributes = [];
-            var obj = {
-                'tagName': next.tagName,
-                'attributes': attributes
-            };
-            for (var i = 0; i < next.attributes.length; i++) {
-                attributes.push([next.attributes[i].name, next.attributes[i].value]);
-            }
-            next = next.parentElement;
-            logLine.elements.push(obj);
-        }*/
 
         if (yConfig) {
             prepareLogLine(logLine);
