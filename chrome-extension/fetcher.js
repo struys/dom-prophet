@@ -70,7 +70,7 @@
           data: {
               'pathElements': JSON.stringify(pathToTarget)
           },
-          success: handleResponse(e.target)
+          success: handleResponse(e)
       });
 
       return false;
@@ -78,14 +78,53 @@
 
     /**
      * Handle successful response for data about target element.
-     * @param {Object} targetElement The target element to get stats for.
+     * @param {Object} e The event object.
      */
-    function handleResponse(targetElement) {
+    function handleResponse(e) {
+        var targetElement = e.target;
         return function(response) {
             // Handle the path_stats response for the target element.
-            console.log('GET 127.0.0.1:5000/path_stats success:')
-            console.log(response);
+            response = JSON.parse(response);
+
+            createStatCardForElement(
+                targetElement, e.clientX, e.clientY, response.clickCount, response.mouseoverCount);
         };
+    };
+
+    /**
+     * Creates a stat-card and places it nearby
+     * where the user clicked at (offsetX, offsetY).
+     * This function is super ugly, don't look at it too closely or you may go blind.
+     * @param {domNode} targetElement The clicked element.
+     * @param {number} offsetX The offsetX of the click event.
+     * @param {number} offsetY The offsetY of the click event.
+     * @param {number} clickCount Number of times the element was clicked.
+     * @param {number} mouseoverCount Number of times element was moused over.
+     */
+    function createStatCardForElement(targetElement, offsetX, offsetY, clickCount, mouseoverCount) {
+        // Remove ugly selection of part of element text on shift-click.
+        targetElement.style['-webkit-user-select'] = 'none';
+        // Create stats card.
+        var card = document.createElement('div');
+        card.className = 'stat-card-for-element';
+        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouseovers: ' + mouseoverCount + '</div>';
+        $(card).css({
+          'color': '#FFF',
+          'position': 'absolute',
+          'top': offsetY + 'px',
+          'left': offsetX + 10 + 'px',
+          'fontSize': '16px',
+          'lineHeight': '140%',
+          'backgroundColor': 'rgba(255, 0, 0, .7)',
+          'zIndex': 9001,
+          'padding': '5px',
+          'border-radius': '5px'
+        });
+
+        // Remove old cards, add new card.
+        $('.stat-card-for-element').remove();
+        targetElement.appendChild(card);
+        document.getElementsByTagName('body')[0].appendChild(card);
     };
 
     /**
