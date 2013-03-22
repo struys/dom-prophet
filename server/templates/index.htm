@@ -27,12 +27,12 @@
       <button type="submit">Search</button>
     </form>
 
-    <form action="/simulator">
+    <form action="/events">
       <label class="search">
         <h2>YUV search</h2>
         <input name="yuv" type="text" value="{{ search_user }}"></input>
       </label>
-      <button type="submit">Simulate</button>
+      <button type="submit">Find Events</button>
     </form>
   </div>
 
@@ -41,7 +41,7 @@
     <ul class="tabs">
       <li {% if tab == 'html' %} class="selected" {% endif %}><a href="/?css={{ search_term }}">HTML</a></li>
       <li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric?css={{ search_term }}">Metrics</a></li>
-      <li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator?css={{ search_term }}">Simulator</a></li>
+      <li {% if tab == 'events' %} class="selected" {% endif %}><a href="/events?yuv={{ search_term }}">Events</a></li>
     </ul>
 
     <div class="tabbed-content">
@@ -96,14 +96,43 @@
           </div>
         {% endif %}
       </section>
-  {% elif tab == 'simulator' %}
-    {% if yuv %}
-      Simulator for: {{ yuv }}
-    {% endif %}
+  {% elif tab == 'events' %}
+    <div id='events'>
+      {% if yuv %}
+        <h2>Events for: {{ yuv }}</h2>
+      {% endif %}
+      <span> Sorted by most recently occured </span>
 
-    {% if results %}
-      {{ results }}
-    {% endif %}
+      {% if results %}
+        <div id="user-events">
+          <ul>
+          {% for event in results %}
+            <li class="event">
+              <h4>Event:</h4>
+                <div class="event-inner">
+                    <p class="event-p">
+                      <span>Event Type:</span>
+                      {{ event['eventType'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Time: </span>
+                      {{ event['timeStamp'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Event URI:</span>
+                      {{ event['url'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Event servlet:</span>
+                      {{ event['pathName'] }}
+                    </p>
+              </div>
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
   {% endif %}
   </div>
 
