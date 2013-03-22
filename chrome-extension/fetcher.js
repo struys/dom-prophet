@@ -70,7 +70,6 @@
       $.ajax('http://127.0.0.1:5000/path_stats', {
           method: 'GET',
           data: {
-              'pathElements': JSON.stringify(pathToTarget),
               'cssPath': cssPath
           },
           success: handleResponse(e)
