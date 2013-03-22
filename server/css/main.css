@@ -237,6 +237,7 @@ section {
 
 #events li {
     margin-bottom: 5px;
+    margin-top: 5px;
     padding: 5px;
     border: 1px solid #e5e5e5;
 }
