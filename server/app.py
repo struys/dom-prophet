@@ -11,6 +11,9 @@ from util.css_to_cypher import calculate_neo4j_query
 
 app = Flask(__name__)
 
+DATABASE_SERVICE = 'http://localhost:7474/db/data/'
+
+
 log_file_path = 'log'
 
 @app.route('/log', methods=['POST'])
@@ -51,7 +54,7 @@ def index():
     results = None
 
     if query is not None:
-        graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+        graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
 
     env = {
@@ -61,6 +64,60 @@ def index():
     }
 
     return render_template('index.htm', **env)
+
+def node_helper(node, depth, string_wrapper):
+    properties = node.get_properties()
+    node_name = properties['tagName'].lower()
+    class_string = properties.get('classString', '')
+
+    if node_name != 'base':
+        string_wrapper['s'] += 2 * depth * ' '
+        string_wrapper['s'] += '<'
+        string_wrapper['s'] += node_name
+        string_wrapper['s'] += ' class="{0}"'.format(class_string)
+        for property in properties:
+            if property not in ['classArray', 'classString', 'tagName']:
+                string_wrapper['s'] += ' {0}="{1}"'.format(property, properties[property])
+
+        string_wrapper['s'] += '>'
+        string_wrapper['s'] += '\n'
+
+        if node_name != 'html':
+            string_wrapper['s'] += 2 * depth * ' '
+            string_wrapper['s'] += 'classString: {0}<br>'.format(class_string)
+            string_wrapper['s'] += '\n'
+        else:
+            string_wrapper['s'] += '''
+                <head>
+                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/a5c276338038/www-pkg-en_US.css">
+                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media2.ak.yelpcdn.com/assets/2/www/css/273ebdc66076/homepage-en_US.css">
+                  <style>
+                      * {
+                          border: 1px solid #000 !important;
+                          margin: 5px !important;
+                          padding: 5px !important;
+                      }
+                  </style>
+                </head>
+            '''
+
+    for child in node.get_related_nodes(neo4j.Direction.OUTGOING):
+        node_helper(child, depth + 1, string_wrapper)
+
+    if node_name != 'base':
+        string_wrapper['s'] += 2 * depth * ' '
+        string_wrapper['s'] += '</{0}>'.format(node_name)
+        string_wrapper['s'] += '\n'
+
+@app.route('/html_nonsense', methods=['GET'])
+def html_nonsense():
+    graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
+    results = cypher.execute(graph_db, "start a=node(*) where a.tagName='BASE' return a;")
+    root = results[0][0][0]
+    string_wrapper = { 's': '' }
+    node_helper(root, 0, string_wrapper)
+
+    return '<!doctype html>\n{0}'.format(string_wrapper['s'])
 
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
