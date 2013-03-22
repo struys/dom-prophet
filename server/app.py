@@ -8,6 +8,7 @@ from flask import Response
 from py2neo import neo4j, cypher
 
 from util.css_to_cypher import calculate_neo4j_query
+from util.events import get_event_nodes_for_yuv
 
 app = Flask(__name__)
 
@@ -70,6 +71,23 @@ def metric():
         'search_term': search_term,
         'query': query,
         'results': [result[0]['classArray'] for result in results] if results else None
+    }
+
+    return render_template('index.htm', **env)
+
+@app.route('/simulator', methods=['GET'])
+def simulator():
+    search_user = request.args.get('yuv', '')
+
+    if search_user != '':
+        nodes = get_event_nodes_for_yuv(search_user)
+    else:
+        nodes = []
+
+    env = {
+        'tab': 'simulator',
+        'search_user': search_user,
+        'results': nodes
     }
 
     return render_template('index.htm', **env)

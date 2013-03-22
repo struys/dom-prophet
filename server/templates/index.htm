@@ -26,6 +26,14 @@
 
 	  	<button type="submit">Search</button>
 	</form>
+
+	<form action="/simulator">
+		<label class="search">
+		<h2>YUV search</h2>
+		<input name="yuv" type="text" value="{{ search_user }}"></input>
+		</label>
+		<button type="submit">Simulate</button>
+	</form>
   </div>
 
   <div class="main-content">
@@ -33,12 +41,13 @@
   <ul class="tabs">
   	<li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
   	<li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
+  	<li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator">Simulator</a></li>
   </ul>
 
   <div class="tabbed-content">
   	{% if tab == 'html' %}
   		<iframe src="/html_nonsense"></iframe>
-  	{% elif tab =='metric' %}
+  	{% elif tab == 'metric' %}
 		{% if query %}
     		Query: {{ query }}<br>
   		{% endif %}
@@ -50,6 +59,16 @@
       		{% endfor %}
     		</ul>
   		{% endif %}
+
+	{% elif tab == 'simulator' %}
+		{% if yuv %}
+		  Simulator for: {{ yuv }}
+		{% endif %}
+
+		{% if results %}
+			{{ results }}
+		{% endif %}
+
   	{% endif %}
   </div>
 
