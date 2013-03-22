@@ -60,20 +60,20 @@
 
     // Recognize Query Click requesting DOM Elt Details.
     jQuery('*').on('click', function(e) {
-      if (!e.shiftKey) {
-          return;
-      }
-      // Process Shift-Click for Target Element Details.
-      var pathToTarget = getPathToElement(e.target);
-      $.ajax('http://127.0.0.1:5000/path_stats', {
-          method: 'GET',
-          data: {
-              'pathElements': JSON.stringify(pathToTarget)
-          },
-          success: handleResponse(e)
-      });
+        if (!e.shiftKey) {
+            return;
+        }
+        // Process Shift-Click for Target Element Details.
+        var pathToTarget = getPathToElement(e.target);
+        $.ajax('http://127.0.0.1:5000/path_stats', {
+            method: 'GET',
+            data: {
+                'pathElements': JSON.stringify(pathToTarget)
+            },
+            success: handleResponse(e)
+        });
 
-      return false;
+        return false;
     });
 
     /**
@@ -109,16 +109,16 @@
         card.className = 'stat-card-for-element';
         card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouseovers: ' + mouseoverCount + '</div>';
         $(card).css({
-          'color': '#FFF',
-          'position': 'absolute',
-          'top': offsetY + 'px',
-          'left': offsetX + 10 + 'px',
-          'fontSize': '16px',
-          'lineHeight': '140%',
-          'backgroundColor': 'rgba(255, 0, 0, .7)',
-          'zIndex': 9001,
-          'padding': '5px',
-          'border-radius': '5px'
+            'color': '#FFF',
+            'position': 'absolute',
+            'top': offsetY + 'px',
+            'left': offsetX + 10 + 'px',
+            'fontSize': '16px',
+            'lineHeight': '140%',
+            'backgroundColor': 'rgba(255, 0, 0, .7)',
+            'zIndex': 9001,
+            'padding': '5px',
+            'border-radius': '5px'
         });
 
         // Remove old cards, add new card.
@@ -156,7 +156,7 @@
             elements: getPathToElement(e.target),
             url: document.location.href,
             cookie: document.cookie,
-            pathName: window.location.pathname,
+            pathName: window.location.pathname.split('/').slice(0, 2).join('/'),
             yuv: readCookie('yuv')
         };
 
