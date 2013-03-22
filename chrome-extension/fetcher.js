@@ -49,7 +49,8 @@
             eventType: e.type,
             elements: [],
             url: document.location.href,
-            cookie: document.cookie
+            cookie: document.cookie,
+            pathName: window.location.pathname
         };
 
         while (next != null) {

@@ -21,8 +21,8 @@ def createEventPath(path_elements):
         Args:
             path_elements: Array of Element objects in path from HTML root to
             target element, ex:
-                [..., { 
-                    'tagName': 'DIV', 
+                [..., {
+                    'tagName': 'DIV',
                     'attributes': [['id': 'wrap'], ['class', 'lang-en']]
                 }, ...]
         Returns:
@@ -40,7 +40,7 @@ def createEventPath(path_elements):
         element_class = element_attrs.get('class', '')
         # Compare current element with traversal node.
         traversal_children = traversal_node.get_related_nodes(1, 'PARENT')
-        traversal_child_match = False 
+        traversal_child_match = False
         for traversal_child in traversal_children:
             child_properties = traversal_child.get_properties()
             child_id = child_properties.get('id', '')
@@ -65,7 +65,7 @@ def createEventPath(path_elements):
             # Add relationship from traversal_node to new child node.
             traversal_node.create_relationship_to(element_node, 'PARENT');
             traversal_node = element_node
-            
+
     return traversal_node
 
 def create_event_for_target_node(target_node, log_line):
