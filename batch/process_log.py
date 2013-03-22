@@ -1,6 +1,6 @@
 """
     ONLY run this batch if you intend on wiping away your data.
-    This will delete *everything* in the the graph and rebuild the paths reading the log file.
+    This deletes *everything* in the graph and rebuilds all paths from log file.
 """
 
 
@@ -10,47 +10,67 @@ from py2neo import neo4j, cypher
 graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
 graph_db.clear()
 
-base_node = graph_db.create({'tagName':'BASE'})[0]
+base_node = graph_db.create({'tagName': 'BASE'})[0]
 
 def create_path(base_node, path_list):
     base_node.get_or_create_path(*path_list)
 
+def createEventPath(path_elements):
+    """Create event path traversal from HTML node to target element.
+
+        Args:
+            path_elements: Array of Element objects in path from HTML root to
+            target element, ex:
+                [..., { 
+                    'tagName': 'DIV', 
+                    'attributes': [['id': 'wrap'], ['class', 'lang-en']]
+                }, ...]
+        Returns:
+            List describing the path from the HTML node to the target node, ex:
+                [('PARENT', {tagName: 'HTML', classString: ''}), ...]
+    """
+    traversal = []
+    for element in path_elements:
+        # Node attributes that we have to either find or create.
+        node_values = {}
+        # Element may not have tagName.
+        node_values['tagName'] = element.get('tagName', '')
+
+        # if we have attributes, we are looking at an HTML element.
+        element_attributes = element.get('attributes', None)
+        if element_attributes:
+            attrib_dict = dict(element_attributes)
+#            import ipdb; ipdb.set_trace()
+            node_values['classString'] = attrib_dict.get('class', '')
+
+        relationship = ('PARENT', node_values)
+        traversal.append(relationship)
+    return traversal
+
 def upsert_to_graph(lines):
-    """Read each line and insert a new tree under the base node if the tree must be created, otherwise we
-    update nodes as necessary with new relationships"""
+    """Read each line and insert a new tree under the base node if the tree must
+    be created, otherwise we update nodes as necessary with new relationships"""
 
     for index, line in enumerate(lines):
-        traversal = []
+        # Process event described by log line.
 
         try:
             line['elements']
+            line['eventType']
+            line['url']
         except TypeError:
             continue
 
-        # Create a 'traversal' by pairing relationships.
-        for element in reversed(line['elements']):
-            # Node attributes that we have to either find
-            # or create.
-            node_values = {}
+        eventInfo = {
+            'eventType': line['eventType'],
+            'url': line['url']
+        }
 
-            # Element may not have tagName
-            node_values['tagName'] = element.get('tagName', '')
-
-            element_attributes = element.get('attributes', None)
-
-            # if we have attributes, we are looking at an HTML element.
-            if element_attributes:
-                attrib_dict = dict(element_attributes)
-                node_values['classString'] = attrib_dict.get('class', '')
-
-            relationship = ('PARENT', node_values)
-
-            traversal.append(relationship)
-
+        traversal = createEventPath(reversed(line['elements']))
         create_path(base_node, traversal)
 
 def fix_class_attributes():
-    """Get nodes that have a non empty class string. And set the classArray property on each one"""
+    """For nodes with non-empty class string, set classArray property."""
     query = "START \
                 to_modify = node(*) \
             WHERE \
@@ -76,7 +96,7 @@ for log_line in open('log', 'r'):
     json_line = json.loads(log_line)
     upsert_to_graph(json_line)
 
-# Fix class attributes because we can't create classArray when upserting, because
-# get_or_create_path is naive and treats nodes with arrays as unique nodes, even if the
-# nodes' arrays are the same.
-fix_class_attributes()
+# Fix class attributes since we can't create classArray when upserting, because
+# get_or_create_path is naive and treats nodes with arrays as unique nodes,
+# even if the nodes' arrays are the same.
+#fix_class_attributes()
