@@ -10,17 +10,17 @@
     <input type="submit">
   </form>
   Search term: {{ search_term }}<br>
-  
+
   {% if query %}
-  	Query: {{ query }}<br>
+    Query: {{ query }}<br>
   {% endif %}
-  
+
   {% if results %}
-  	<ul>
-	  	{% for result in results %}
-	  		<li>{{ result }}</li>
-	  	{% endfor %}
-  	</ul>
+    <ul>
+      {% for result in results %}
+        <li>{{ result }}</li>
+      {% endfor %}
+    </ul>
   {% endif %}
   <script src="js/jquery-1.9.1.min.js"></script>
 </body>

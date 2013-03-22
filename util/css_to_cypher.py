@@ -19,14 +19,14 @@ def _calculate_neo4j_query(parsed_css, query, last_var=None):
         _calculate_neo4j_query(element1, query, last_var=last_var)
         new_last_var = query.last_created_var
         next_var = query.get_var()
-        
+
         if parsed_css.combinator == ' ':
             dist = 'many'
         elif parsed_css.combinator == '>':
             dist = 'single'
         else:
             raise TypeError('Invalid css selector')
-        
+
         match = MatchRule(new_last_var, next_var, 'PARENT', dist=dist)
 
         query.match_clause.append(match)

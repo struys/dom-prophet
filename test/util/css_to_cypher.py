@@ -51,7 +51,7 @@ class TestParse(unittest.TestCase):
         query = cc.calculate_neo4j_query('div span')
 
         self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT*]->(b) where a.tagName='DIV' and b.tagName='SPAN' return b")
-        
+
     def test_direct_child(self):
         query = cc.calculate_neo4j_query('div > span')
         self.assertEqual(query.__str__(), "start a=node(*) match (a)-[:PARENT]->(b) where a.tagName='DIV' and b.tagName='SPAN' return b")

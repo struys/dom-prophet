@@ -45,15 +45,15 @@ def log_length():
 def index():
     '''Expects parameter "q"'''
     search_term = request.args.get('q', '')
-    
+
     query = calculate_neo4j_query(search_term) if search_term else None
 
     results = None
-    
+
     if query is not None:
         graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
         results = cypher.execute(graph_db, str(query))[0]
-    
+
     env = {
         'search_term': search_term,
         'query': query,
