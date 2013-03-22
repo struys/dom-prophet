@@ -9,13 +9,13 @@
 
 <div class="wrap">
   <div class="filters">
-  
+
   	<form>
 	  	<label class="search">
 	  	<h2>CSS selector</h2>
 	  	<input name="css" type="text" value="{{ search_term }}"></input>
 	  	</label>
-	  	
+
 	  	<label class="search">
 	  		<h2>Servlet</h2>
 	  		<select>
@@ -23,18 +23,18 @@
 	  			<option name="home">biz_details</option>
 	  		</select>
 	  	</label>
-	  	
+
 	  	<button type="submit">Search</button>
-	</form> 
+	</form>
   </div>
-  
+
   <div class="main-content">
-  
+
   <ul class="tabs">
   	<li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
   	<li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
   </ul>
-  
+
   <div class="tabbed-content">
   	{% if tab == 'html' %}
   		<iframe src="/html_nonsense"></iframe>
@@ -49,14 +49,14 @@
         		<li>{{ result }}</li>
       		{% endfor %}
     		</ul>
-  		{% endif %}		
+  		{% endif %}
   	{% endif %}
   </div>
-  
+
   </div>
 </div>
 
 <script src="js/jquery-1.9.1.min.js"></script>
-  
+
 </body>
 </html>

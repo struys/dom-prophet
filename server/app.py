@@ -64,15 +64,15 @@ def metric():
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
-    
+
     env = {
         'tab': 'metric',
         'search_term': search_term,
         'query': query,
         'results': [result[0]['classArray'] for result in results] if results else None
     }
-    
-    return render_template('index.htm', **env)   
+
+    return render_template('index.htm', **env)
 
 def node_helper(node, depth, string_wrapper):
     properties = node.get_properties()
