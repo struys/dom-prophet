@@ -66,6 +66,7 @@ def metric():
     results = None
     percent_breakdown = None
     hit_count = None
+    histogram = None
 
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
@@ -75,7 +76,8 @@ def metric():
     children = []
 
     if results:
-        hit_count = get_hit_counts(graph_db, results)
+        hit_count = get_hit_counts(graph_db, results)        
+        histogram = get_histogram(graph_db, results)
 
         for r in [result[0] for result in results]:
             related = r.get_single_related_node(neo4j.Direction.OUTGOING, 'PARENT')
@@ -104,7 +106,8 @@ def metric():
         'query': query,
         'percent_breakdown': percent_breakdown,
         'children': set(children),
-        'hit_count': hit_count
+        'hit_count': hit_count,
+        'histogram': histogram,
     }
 
     return render_template('index.htm', **env)
@@ -203,16 +206,73 @@ def get_hit_counts(graph_db, results):
         'mouseenter': 0,
         'click': 0
     }
+    
+    x = set([])
+    
+    for result in [r[0] for r in results]:
+        events = result.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
+        for event in events:            
+            if event.id not in x:
+                x.add(event.id)
+                if event['eventType'] == 'mouseenter':
+                    return_events['mouseenter'] += 1
+                elif event['eventType'] == 'click':
+                    return_events['click'] += 1
+
+    return return_events
+
+
+def get_histogram(graph_db, results):
+    timestamps = {
+        'mouseenter': set([]),
+        'click': set([]),
+    }
+    
+    x = set([])
+    
 
     for result in [r[0] for r in results]:
         events = result.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
         for event in events:
+            x.add(event.id)
+            
             if event['eventType'] == 'mouseenter':
-                return_events['mouseenter'] += 1
+                timestamps['mouseenter'].add(event['timeStamp'])
             elif event['eventType'] == 'click':
-                return_events['click'] += 1
-
-    return return_events
+                timestamps['click'].add(event['timeStamp'])
+    
+    
+    
+    
+    all = timestamps['mouseenter'].union(timestamps['click'])
+    
+    
+    if len(all) == 0:
+        return None
+    
+    
+    bucket_size = (max(all) - min(all))/20
+    
+    result = {
+        'mouseenter': [],
+        'click': [],
+        'labels': []
+    }
+    
+    if bucket_size==0:
+        for i in range(0, 20):
+            result['labels'].append('')
+            result['mouseenter'].append(len(set([t for t in timestamps['mouseenter']])))
+            result['click'].append(len(set([t for t in timestamps['click']])))
+    else:
+        for next in range(min(all), max(all), bucket_size):
+            #result['labels'].append(str(next))
+            result['labels'].append('')
+            result['mouseenter'].append(len(set([t for t in timestamps['mouseenter'] if t < next])))
+            result['click'].append(len(set([t for t in timestamps['click'] if t < next])))
+        
+     
+    return result
 
 def get_percentage_logged_in_vs_out(graph_db, results):
     return_val = {
