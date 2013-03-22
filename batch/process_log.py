@@ -99,4 +99,4 @@ for log_line in open('log', 'r'):
 # Fix class attributes since we can't create classArray when upserting, because
 # get_or_create_path is naive and treats nodes with arrays as unique nodes,
 # even if the nodes' arrays are the same.
-#fix_class_attributes()
+fix_class_attributes()
