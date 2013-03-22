@@ -49,8 +49,9 @@ def log_length():
 
 @app.route('/', methods=['GET'])
 def index():
-    '''Expects parameter "q"'''
+    search_term = request.args.get('css', '')
     env = {
+        'search_term': search_term,
         'tab': 'html',
     }
 
@@ -72,7 +73,6 @@ def metric():
         percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
 
     children = []
-
 
     if results:
         hit_count = get_hit_counts(graph_db, results)
@@ -143,7 +143,10 @@ def html_nonsense():
 
     html_builder = cStringIO.StringIO()
     html_builder.write('<!doctype html>\n')
-    HtmlPrintableNode(root, 0).build_str(html_builder)
+    if root:
+        HtmlPrintableNode(root, 0).build_str(html_builder)
+    else:
+        html_builder.write('<html><body>No results.</body></html>')
     return html_builder.getvalue()
 
 @app.route('/path_stats', methods=['GET'])

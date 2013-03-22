@@ -79,6 +79,9 @@ class FakeNode(object):
         )
 
 def build_tree(query_results):
+    if not query_results:
+        return None
+
     nodes = {}
     root_node_id = None
 

@@ -111,16 +111,16 @@
         card.className = 'stat-card-for-element';
         card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>mouse-enters: ' + mouseenterCount + '</div>';
         $(card).css({
-          'color': '#FFF',
-          'position': 'absolute',
-          'top': offsetY + 'px',
-          'left': offsetX + 10 + 'px',
-          'fontSize': '16px',
-          'lineHeight': '140%',
-          'backgroundColor': 'rgba(255, 0, 0, .7)',
-          'zIndex': 9001,
-          'padding': '5px',
-          'border-radius': '5px'
+            'color': '#FFF',
+            'position': 'absolute',
+            'top': offsetY + 'px',
+            'left': offsetX + 10 + 'px',
+            'fontSize': '16px',
+            'lineHeight': '140%',
+            'backgroundColor': 'rgba(255, 0, 0, .7)',
+            'zIndex': 9001,
+            'padding': '5px',
+            'border-radius': '5px'
         });
 
         // Remove old cards, add new card.
@@ -192,7 +192,7 @@
             elements: getPathToElement(e.target),
             url: document.location.href,
             cookie: document.cookie,
-            pathName: window.location.pathname,
+            pathName: window.location.pathname.split('/').slice(0, 2).join('/'),
             yuv: readCookie('yuv')
         };
 
