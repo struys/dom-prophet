@@ -47,7 +47,15 @@ def log_length():
 @app.route('/', methods=['GET'])
 def index():
     '''Expects parameter "q"'''
-    search_term = request.args.get('q', '')
+    env = {
+        'tab': 'html',
+    }
+
+    return render_template('index.htm', **env)
+
+@app.route('/metric', methods=['GET'])
+def metric():
+    search_term = request.args.get('css', '')
 
     query = calculate_neo4j_query(search_term) if search_term else None
 
@@ -56,20 +64,12 @@ def index():
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
-
+    
     env = {
-        'tab': 'html',
+        'tab': 'metric',
         'search_term': search_term,
         'query': query,
         'results': [result[0]['classArray'] for result in results] if results else None
-    }
-
-    return render_template('index.htm', **env)
-
-@app.route('/metric', methods=['GET'])
-def metric():
-    env = {
-        'tab': 'metric'
     }
     
     return render_template('index.htm', **env)   
@@ -123,7 +123,7 @@ def node_helper(node, depth, string_wrapper):
 @app.route('/html_nonsense', methods=['GET'])
 def html_nonsense():
     graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
-    results = cypher.execute(graph_db, "start a=node(*) where a.tagName='BASE' return a;")
+    results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
     root = results[0][0][0]
     string_wrapper = { 's': '' }
     node_helper(root, 0, string_wrapper)

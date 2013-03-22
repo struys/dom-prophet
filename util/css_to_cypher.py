@@ -45,7 +45,7 @@ def _calculate_neo4j_query(parsed_css, query, last_var=None):
 
     elif isinstance(parsed_css, cssselect.parser.Element):
         if parsed_css.element is not None:
-            expr1 = "{0}.tagName='{1}'".format(last_var, parsed_css.element.upper())
+            expr1 = "has({0}.tagName) and {0}.tagName='{1}'".format(last_var, parsed_css.element.upper())
             query.where_clause.append(expr1)
 
         query.return_clause = ReturnClause(last_var)

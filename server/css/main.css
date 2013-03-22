@@ -4,7 +4,7 @@ body {
 }
 
 .wrap {
-	width: 1350px;
+	width: 1550px;
 	margin-left:auto;
 	margin-right:auto;
 	overflow:hidden;
@@ -45,6 +45,17 @@ body {
 	display:block;	
 }
 
+.filters button[type=submit] {
+	background-color:#577EFF;
+	color:white;
+	font-size:16px;
+	border:none;
+	padding:20px;
+	border-radius:10px;
+	width:100px;
+	float:right;	
+}
+
 .tabs {
 	overflow:hidden;
 	text-align:center;
@@ -58,12 +69,12 @@ body {
 	background-color: #eee;
 	border-bottom: 1px solid #e5e5e5;
 	border-top: 0px solid #e5e5e5;
-	width:494px;
+	width:599px;
 	float:left;
 }
 
 .tabs li:first-child {
-	width:495px;
+	width:600px;
 	border-right: 1px solid #e5e5e5;	
 }
 
@@ -80,9 +91,18 @@ body {
 }
 
 .main-content {
-	width: 990px;
-	height: 500px;
+	width: 1200px;
 	float:right;
 	
 	border: 1px solid #ccc;
+}
+
+.tabbed-content {
+	border-top: 1px solid #ccc;	
+}
+
+.tabbed-content iframe{
+	width:1200px;
+	min-height:80%;
+	overflow-y:scroll;
 }
