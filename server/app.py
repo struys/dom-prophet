@@ -129,25 +129,21 @@ def simulator():
 @app.route('/html_nonsense', methods=['GET'])
 def html_nonsense():
     graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
-    results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
-    root = results[0][0][0]
+
+    # If we have a search term we want to build a tree that only has those
+    #  nodes
+    search_term = request.args.get('q', '')
+    if search_term:
+        query = calculate_neo4j_query(search_term)
+        results = cypher.execute(graph_db, query)
+        root = build_tree(results[0])
+    else:
+        results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
+        root = results[0][0][0]
+
     html_builder = cStringIO.StringIO()
     html_builder.write('<!doctype html>\n')
     HtmlPrintableNode(root, 0).build_str(html_builder)
-    return html_builder.getvalue()
-
-@app.route('/html_with_query', methods=['GET'])
-def html_with_query():
-    search_term = request.args.get('q', '')
-    if not search_term:
-        return 'No search term'
-    query = calculate_neo4j_query(search_term)
-    graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
-    results = cypher.execute(graph_db, query)
-    subpaths_root = build_tree(results[0])
-    html_builder = cStringIO.StringIO()
-    html_builder.write('<!doctype html>\n')
-    HtmlPrintableNode(subpaths_root, 0).build_str(html_builder)
     return html_builder.getvalue()
 
 @app.route('/path_stats', methods=['GET'])
