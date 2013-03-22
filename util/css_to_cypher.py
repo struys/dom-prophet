@@ -84,21 +84,24 @@ class HasClass(object):
         ))
 
 class HasAttribute(object):
-    def __init__(self, var, attr, value):
+    def __init__(self, var, attr, value=None):
         self.var = var
         self.id = id
         self.attr = attr
         self.value = value
 
     def __str__(self):
-        return str(Conjunct(
-            HasExpression(str(self.var) + '.' + self.attr),
-            "{var}.{attr}='{value}'".format(
-                var=self.var,
-                attr=self.attr,
-                value=self.value,
-            )
-        ))
+        if self.value:
+            return str(Conjunct(
+                HasExpression(str(self.var) + '.' + self.attr),
+                "{var}.{attr}='{value}'".format(
+                    var=self.var,
+                    attr=self.attr,
+                    value=self.value,
+                )
+            ))
+        else:
+            return str(HasExpression(str(self.var) + '.' + self.attr))
 
 class HasId(HasAttribute):
     def __init__(self, var, id):

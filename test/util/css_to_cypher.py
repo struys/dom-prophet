@@ -64,6 +64,10 @@ class TestParse(unittest.TestCase):
         query = cc.calculate_neo4j_query('div[herp=derp]')
         self.assertEqual(query.__str__(), "start a=node(*) where has(a.herp) and a.herp='derp' and a.tagName='DIV' return a")
 
+    def test_attribute_selector_no_value(self):
+        query = cc.calculate_neo4j_query('div[herp]')
+        self.assertEqual(query.__str__(), "start a=node(*) where has(a.herp) and a.tagName='DIV' return a")
+
 
 if __name__ == '__main__':
     unittest.main()
