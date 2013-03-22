@@ -29,74 +29,78 @@ def createEventPath(path_elements):
             List describing the path from the HTML node to the target node, ex:
                 [('PARENT', {tagName: 'HTML', classString: ''}), ...]
     """
-    traversal = []
+    traversal_node = base_node
+
+    # Is there a node matching our current node
     for element in path_elements:
-        # Node attributes that we have to either find or create.
-        node_values = {}
-        # Element may not have tagName.
-        node_values['tagName'] = element.get('tagName', '')
+        # Element Attributes.
+        element_tag_name = element.get('tagName')
+        element_attrs = dict(element.get('attributes'))
+        element_id = element_attrs.get('id', '')
+        element_class = element_attrs.get('class', '')
+        # Compare current element with traversal node.
+        traversal_children = traversal_node.get_related_nodes(1, 'PARENT')
+        traversal_child_match = False 
+        for traversal_child in traversal_children:
+            child_properties = traversal_child.get_properties()
+            child_id = child_properties.get('id', '')
+            child_class = child_properties.get('classString', '')
+            if (element_id == child_id and element_class == child_class):
+                # The traversal_child matches our element: advance both.
+                traversal_node = traversal_child
+                traversal_child_match = True
+                break
+        # If we haven't found a child matching element for traversal_node,
+        # insert element as new node under traversal node,
+        # and continue inserting new nodes.
+        if not traversal_child_match:
+            # Create node for element.
+            element_properties = {
+                'tagName': element_tag_name,
+                'id': element_id,
+                'classString': element_class,
+                'classArray': element_class.split(' '),
+            }
+            element_node = graph_db.create(element_properties)[0]
+            # Add relationship from traversal_node to new child node.
+            traversal_node.create_relationship_to(element_node, 'PARENT');
+            traversal_node = element_node
+            
+    return traversal_node
 
-        # if we have attributes, we are looking at an HTML element.
-        element_attributes = element.get('attributes', None)
-        if element_attributes:
-            attrib_dict = dict(element_attributes)
-#            import ipdb; ipdb.set_trace()
-            node_values['classString'] = attrib_dict.get('class', '')
+def create_event_for_target_node(target_node, log_line):
+    """Create event node for the target node of the interaction."""
+    # Create event node.
+    #event_node = graph_db.create()
 
-        relationship = ('PARENT', node_values)
-        traversal.append(relationship)
-    return traversal
+    # Add relationship between target node and event node.
+
+    return event_node
 
 def upsert_to_graph(lines):
     """Read each line and insert a new tree under the base node if the tree must
     be created, otherwise we update nodes as necessary with new relationships"""
 
-    for index, line in enumerate(lines):
+    for index, log_line in enumerate(lines):
         # Process event described by log line.
 
         try:
-            line['elements']
-            line['eventType']
-            line['url']
+            log_line['cookie']
+            log_line['elements']
+            log_line['eventType']
+            log_line['url']
         except TypeError:
             continue
 
+        target_node = createEventPath(reversed(log_line['elements']))
+
+        create_event_for_target_node(target_node, log_line)
         eventInfo = {
             'eventType': line['eventType'],
             'url': line['url']
         }
 
-        traversal = createEventPath(reversed(line['elements']))
-        create_path(base_node, traversal)
-
-def fix_class_attributes():
-    """For nodes with non-empty class string, set classArray property."""
-    query = "START \
-                to_modify = node(*) \
-            WHERE \
-                has(to_modify.classString) \
-                and not(to_modify.classString='') \
-            RETURN to_modify;"
-
-    all_nodes = cypher.execute(graph_db, query)[0];
-
-    for node in all_nodes:
-        actual_node = node[0]
-        # Get the properties for this node.
-        node_properties = actual_node.get_properties()
-        classString = node_properties['classString']
-
-        # Set the classArray for this node.
-        node_properties['classArray'] = classString.split(' ')
-
-        actual_node.set_properties(node_properties)
-
 
 for log_line in open('log', 'r'):
     json_line = json.loads(log_line)
     upsert_to_graph(json_line)
-
-# Fix class attributes since we can't create classArray when upserting, because
-# get_or_create_path is naive and treats nodes with arrays as unique nodes,
-# even if the nodes' arrays are the same.
-fix_class_attributes()
