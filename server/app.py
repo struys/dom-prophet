@@ -9,19 +9,20 @@ from flask import render_template
 from flask import Response
 from py2neo import neo4j, cypher
 
+from node_building import build_tree
+from node_building import HtmlPrintableNode
+
 from util.css_to_cypher import calculate_neo4j_query
 from util.events import get_event_nodes_for_yuv
 
 app = Flask(__name__)
 
 DATABASE_SERVICE = 'http://localhost:7474/db/data/'
-
-
-log_file_path = 'log'
+LOG_FILE_PATH = 'log'
 
 @app.route('/log', methods=['POST'])
 def write_to_log():
-    with open(log_file_path, "ab") as log_file:
+    with open(LOG_FILE_PATH, "ab") as log_file:
         log_file.write(request.form['log'] + '\n')
     return ''
 
@@ -29,18 +30,18 @@ def write_to_log():
 def view_log():
     index = request.args.get('index')
     if index is None:
-        return open(log_file_path, 'r').read()
+        return open(LOG_FILE_PATH, 'r').read()
 
     index = int(index)
 
-    with open(log_file_path) as log_file:
+    with open(LOG_FILE_PATH) as log_file:
         for i, l in enumerate(log_file):
             if i == index:
                 return l
 
 @app.route('/log/size', methods=['GET'])
 def log_length():
-    with open(log_file_path) as log_file:
+    with open(LOG_FILE_PATH) as log_file:
         for i, l in enumerate(log_file):
             pass
 
@@ -125,60 +126,6 @@ def simulator():
 
     return render_template('index.htm', **env)
 
-class HtmlPrintableNode(object):
-    def __init__(self, node, depth):
-        self.node = node
-        self.depth = depth
-
-    def write_head_tag(self, html_builder):
-        html_builder.write('''
-           <head>
-              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/a5c276338038/www-pkg-en_US.css">
-              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media2.ak.yelpcdn.com/assets/2/www/css/273ebdc66076/homepage-en_US.css">
-              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/40429fd12d50/new_search/search-en_US.css">
-
-              <style>
-                  * {
-                      border: 1px solid #000 !important;
-                      margin: 5px !important;
-                      padding: 5px !important;
-                  }
-              </style>
-            </head>
-        ''')
-
-    def build_str(self, html_builder):
-        properties = self.node.get_properties()
-        node_name = properties['tagName'].lower()
-        class_string = properties.get('classString', '')
-        tab = 2 * self.depth * ' '
-
-        if node_name != 'base':
-            html_builder.write('{tab}<{node_name} class={class_string}'.format(
-                tab=tab, node_name=node_name, class_string=class_string
-            ))
-
-            for property in properties:
-                if property not in ['classArray', 'classString', 'tagName']:
-                    html_builder.write(' {0}="{1}"'.format(property, properties[property]))
-
-            html_builder.write('>\n')
-
-            if node_name != 'html':
-                html_builder.write('{tab}classString: {class_string}\n'.format(
-                    tab=tab, class_string=class_string
-                ))
-            else:
-                self.write_head_tag(html_builder)
-
-        for child in self.node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT'):
-            HtmlPrintableNode(child, self.depth + 1).build_str(html_builder)
-
-        if node_name != 'base':
-            html_builder.write('{tab}</{node_name}>\n'.format(
-                tab=tab, node_name=node_name
-            ))
-
 @app.route('/html_nonsense', methods=['GET'])
 def html_nonsense():
     graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
@@ -187,7 +134,20 @@ def html_nonsense():
     html_builder = cStringIO.StringIO()
     html_builder.write('<!doctype html>\n')
     HtmlPrintableNode(root, 0).build_str(html_builder)
+    return html_builder.getvalue()
 
+@app.route('/html_with_query', methods=['GET'])
+def html_with_query():
+    search_term = request.args.get('q', '')
+    if not search_term:
+        return 'No search term'
+    query = calculate_neo4j_query(search_term)
+    graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
+    results = cypher.execute(graph_db, query)
+    subpaths_root = build_tree(results[0])
+    html_builder = cStringIO.StringIO()
+    html_builder.write('<!doctype html>\n')
+    HtmlPrintableNode(subpaths_root, 0).build_str(html_builder)
     return html_builder.getvalue()
 
 @app.route('/path_stats', methods=['GET'])
@@ -204,14 +164,6 @@ def path_stats():
         'mouseoverCount': 9001
     }
     return json.dumps(target_data)
-
-    #graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
-    #results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
-    #root = results[0][0][0]
-    #string_wrapper = { 's': '' }
-    #node_helper(root, 0, string_wrapper)
-
-    #return '<!doctype html>\n{0}'.format(string_wrapper['s'])
 
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
