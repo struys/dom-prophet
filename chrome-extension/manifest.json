@@ -10,5 +10,6 @@
     "matches": ["http://www.yelp.com/*"],
     "js": ["jquery-1.9.1.min.js", "fetcher.js"],
     "css": []
-  }]
+  }],
+  "permissions": ["http://*/"]
 }
