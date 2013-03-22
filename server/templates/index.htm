@@ -39,9 +39,9 @@
   <div class="main-content">
 
     <ul class="tabs">
-      <li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
-      <li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
-      <li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator">Simulator</a></li>
+      <li {% if tab == 'html' %} class="selected" {% endif %}><a href="/?css={{ search_term }}">HTML</a></li>
+      <li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric?css={{ search_term }}">Metrics</a></li>
+      <li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator?css={{ search_term }}">Simulator</a></li>
     </ul>
 
     <div class="tabbed-content">
