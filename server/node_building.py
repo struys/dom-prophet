@@ -1,3 +1,5 @@
+import collections
+
 from py2neo import neo4j
 
 class HtmlPrintableNode(object):
@@ -27,6 +29,7 @@ class HtmlPrintableNode(object):
         node_name = properties['tagName'].lower()
         class_string = properties.get('classString', '')
         tab = 2 * self.depth * ' '
+        children = self.node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT')
 
         if node_name != 'base':
             html_builder.write('{tab}<{node_name} class={class_string}'.format(
@@ -46,8 +49,20 @@ class HtmlPrintableNode(object):
             else:
                 self.write_head_tag(html_builder)
 
-        for child in self.node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT'):
-            HtmlPrintableNode(child, self.depth + 1).build_str(html_builder)
+        if children:
+            for child in children:
+                HtmlPrintableNode(child, self.depth + 1).build_str(html_builder)
+        else:
+            # Print counts for event nodes
+            events = self.node.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
+            event_types = collections.defaultdict(int)
+            for event in events:
+                event_types[event.get_properties()['eventType']] += 1
+
+            for event_type in event_types:
+                html_builder.write('{tab}{event_type} = {count}'.format(
+                    tab=tab, event_type=event_type, count=event_types[event_type]
+                ))
 
         if node_name != 'base':
             html_builder.write('{tab}</{node_name}>\n'.format(
@@ -55,16 +70,20 @@ class HtmlPrintableNode(object):
             ))
 
 class FakeNode(object):
-    def __init__(self, id, properties, children=[]):
+    def __init__(self, id, properties, children=[], events=[]):
         self.id = id
         self.properties = properties
         self.children = children
+        self.events = events
 
     def get_properties(self):
         return self.properties
 
-    def get_related_nodes(self, *args):
-        return self.children
+    def get_related_nodes(self, direction, relation):
+        if direction == neo4j.Direction.OUTGOING and relation == 'PARENT':
+            return self.children
+        elif direction == neo4j.Direction.OUTGOING and relation == 'EVENT':
+            return self.events
 
     def add_child(self, child):
         # Um wtf? why didn't self.children.append(child) work?
@@ -89,7 +108,11 @@ def build_tree(query_results):
         node = node[0]
 
         if node.id not in nodes:
-            nodes[node.id] = FakeNode(node.id, node.get_properties())
+            nodes[node.id] = FakeNode(
+                node.id,
+                node.get_properties(),
+                events=node.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
+            )
 
         while True:
             node_parent = node.get_related_nodes(neo4j.Direction.INCOMING, 'PARENT')[0]
