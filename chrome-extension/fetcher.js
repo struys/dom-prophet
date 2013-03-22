@@ -65,10 +65,13 @@
       }
       // Process Shift-Click for Target Element Details.
       var pathToTarget = getPathToElement(e.target);
+      var cssPath = getCSSPathFromElementPath(pathToTarget);
+      console.log('CSS Path: ', cssPath);
       $.ajax('http://127.0.0.1:5000/path_stats', {
           method: 'GET',
           data: {
-              'pathElements': JSON.stringify(pathToTarget)
+              'pathElements': JSON.stringify(pathToTarget),
+              'cssPath': cssPath
           },
           success: handleResponse(e)
       });
@@ -87,7 +90,7 @@
             response = JSON.parse(response);
 
             createStatCardForElement(
-                targetElement, e.clientX, e.clientY, response.clickCount, response.mouseoverCount);
+                targetElement, e.clientX, e.clientY, response.clickCount, response.mouseenterCount);
         };
     };
 
@@ -99,15 +102,15 @@
      * @param {number} offsetX The offsetX of the click event.
      * @param {number} offsetY The offsetY of the click event.
      * @param {number} clickCount Number of times the element was clicked.
-     * @param {number} mouseoverCount Number of times element was moused over.
+     * @param {number} mouseenterCount Number of times element was moused over.
      */
-    function createStatCardForElement(targetElement, offsetX, offsetY, clickCount, mouseoverCount) {
+    function createStatCardForElement(targetElement, offsetX, offsetY, clickCount, mouseenterCount) {
         // Remove ugly selection of part of element text on shift-click.
         targetElement.style['-webkit-user-select'] = 'none';
         // Create stats card.
         var card = document.createElement('div');
         card.className = 'stat-card-for-element';
-        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>Mouseovers: ' + mouseoverCount + '</div>';
+        card.innerHTML = '<div>Interaction Data:</div><div>Clicks: ' + clickCount + '</div><div>mouse-enters: ' + mouseenterCount + '</div>';
         $(card).css({
           'color': '#FFF',
           'position': 'absolute',
@@ -130,10 +133,11 @@
     /**
      * Get the path from the HTML root to the element.
      * @param {Object} element The dom element.
-     * @return {Array} pathElements The path from HTML node to target node.
+     * @return {Array} elementPath List of element objects
+     * with tagName and attributes keys.
      */
     function getPathToElement(element) {
-        var pathElements = [];
+        var elementPath = [];
         while (element != null) {
             var attributes = [];
             var obj = {
@@ -144,9 +148,42 @@
                 attributes.push([element.attributes[i].name, element.attributes[i].value]);
             }
             element = element.parentElement;
-            pathElements.push(obj);
+            elementPath.push(obj);
         }
-        return pathElements;
+        return elementPath;
+    }
+
+    /**
+     * Get CSS selector string from element path for querying element stats.
+     * @param {Array} elementPath The elements in the path from
+     * the HTML node to target node.
+     * @return {string} The CSS Query string for the element path.
+     */
+    function getCSSPathFromElementPath(elementPath) {
+        var cssArray = [];
+        for (var i = 0, numElts = elementPath.length; i < numElts; i++) {
+          var element = elementPath[i];
+          var cssName = element.tagName;
+          if (cssName !== 'HTML') {
+              // Prefer tagName for HTML only.
+              var attrs = element.attributes;
+              // Search attribute list for id, or class.
+              for (var j = 0, numAttrs = attrs.length; j < numAttrs; j++) {
+                  var attr = attrs[j];
+                  var key = attr[0];
+                  var value = attr[1];
+                  if (key === 'id') {
+                      cssName = '#' + value;
+                      break;
+                  } else if (key === 'class') {
+                      cssName = '.' + value.split(' ')[0];
+                  }
+              }
+          }
+          cssArray.push(cssName);
+        }
+        cssArray.reverse();
+        return cssArray.join(' ');
     }
 
     jQuery('*').on('mouseenter click', function(e) {
