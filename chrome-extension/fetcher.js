@@ -63,6 +63,7 @@
 
         var logLine = {
             eventType: e.type,
+	    timeStamp: e.timeStamp,
             elements: [],
             url: document.location.href,
             cookie: document.cookie,
