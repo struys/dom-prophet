@@ -91,6 +91,8 @@ def node_helper(node, depth, string_wrapper):
                 <head>
                   <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/a5c276338038/www-pkg-en_US.css">
                   <link rel="stylesheet" type="text/css" media="all" href="http://s3-media2.ak.yelpcdn.com/assets/2/www/css/273ebdc66076/homepage-en_US.css">
+                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/40429fd12d50/new_search/search-en_US.css">
+
                   <style>
                       * {
                           border: 1px solid #000 !important;
