@@ -1,3 +1,4 @@
+import cStringIO
 import os.path
 
 from flask import Flask
@@ -21,7 +22,6 @@ log_file_path = 'log'
 def write_to_log():
     with open(log_file_path, "ab") as log_file:
         log_file.write(request.form['log'] + '\n')
-
     return ''
 
 @app.route('/log', methods=['GET'])
@@ -68,32 +68,32 @@ def metric():
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
         percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
-        
+
     children = []
-    
-    
+
+
     if results:
         hit_count = get_hit_counts(graph_db, results)
-    
+
         for r in [result[0] for result in results]:
             related = r.get_single_related_node(neo4j.Direction.OUTGOING, 'PARENT')
-            
+
             if related is None:
                 continue
-            
+
             selector = related['tagName'].lower()
-            
+
             def has_id(selector):
                 return 'id' in related and related['id'] is not None and related['id'] != ''
-                
+
             if has_id(selector):
                 selector += '#' + related['id']
-            
+
             if len(related['classArray']) > 0 and related['classArray'][0] != '':
                 if not has_id(selector):
                     selector += '.'
                 selector += '.'.join(related['classArray'])
-            
+
             children.append(selector)
 
     env = {
@@ -124,61 +124,70 @@ def simulator():
 
     return render_template('index.htm', **env)
 
-def node_helper(node, depth, string_wrapper):
-    properties = node.get_properties()
-    node_name = properties['tagName'].lower()
-    class_string = properties.get('classString', '')
+class HtmlPrintableNode(object):
+    def __init__(self, node, depth):
+        self.node = node
+        self.depth = depth
 
-    if node_name != 'base':
-        string_wrapper['s'] += 2 * depth * ' '
-        string_wrapper['s'] += '<'
-        string_wrapper['s'] += node_name
-        string_wrapper['s'] += ' class="{0}"'.format(class_string)
-        for property in properties:
-            if property not in ['classArray', 'classString', 'tagName']:
-                string_wrapper['s'] += ' {0}="{1}"'.format(property, properties[property])
+    def write_head_tag(self, html_builder):
+        html_builder.write('''
+           <head>
+              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/a5c276338038/www-pkg-en_US.css">
+              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media2.ak.yelpcdn.com/assets/2/www/css/273ebdc66076/homepage-en_US.css">
+              <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/40429fd12d50/new_search/search-en_US.css">
 
-        string_wrapper['s'] += '>'
-        string_wrapper['s'] += '\n'
+              <style>
+                  * {
+                      border: 1px solid #000 !important;
+                      margin: 5px !important;
+                      padding: 5px !important;
+                  }
+              </style>
+            </head>
+        ''')
 
-        if node_name != 'html':
-            string_wrapper['s'] += 2 * depth * ' '
-            string_wrapper['s'] += 'classString: {0}<br>'.format(class_string)
-            string_wrapper['s'] += '\n'
-        else:
-            string_wrapper['s'] += '''
-                <head>
-                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/a5c276338038/www-pkg-en_US.css">
-                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media2.ak.yelpcdn.com/assets/2/www/css/273ebdc66076/homepage-en_US.css">
-                  <link rel="stylesheet" type="text/css" media="all" href="http://s3-media4.ak.yelpcdn.com/assets/2/www/css/40429fd12d50/new_search/search-en_US.css">
+    def build_str(self, html_builder):
+        properties = self.node.get_properties()
+        node_name = properties['tagName'].lower()
+        class_string = properties.get('classString', '')
+        tab = 2 * self.depth * ' '
 
-                  <style>
-                      * {
-                          border: 1px solid #000 !important;
-                          margin: 5px !important;
-                          padding: 5px !important;
-                      }
-                  </style>
-                </head>
-            '''
+        if node_name != 'base':
+            html_builder.write('{tab}<{node_name} class={class_string}'.format(
+                tab=tab, node_name=node_name, class_string=class_string
+            ))
 
-    for child in node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT'):
-        node_helper(child, depth + 1, string_wrapper)
+            for property in properties:
+                if property not in ['classArray', 'classString', 'tagName']:
+                    html_builder.write(' {0}="{1}"'.format(property, properties[property]))
 
-    if node_name != 'base':
-        string_wrapper['s'] += 2 * depth * ' '
-        string_wrapper['s'] += '</{0}>'.format(node_name)
-        string_wrapper['s'] += '\n'
+            html_builder.write('>\n')
+
+            if node_name != 'html':
+                html_builder.write('{tab}classString: {class_string}\n'.format(
+                    tab=tab, class_string=class_string
+                ))
+            else:
+                self.write_head_tag(html_builder)
+
+        for child in self.node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT'):
+            HtmlPrintableNode(child, self.depth + 1).build_str(html_builder)
+
+        if node_name != 'base':
+            html_builder.write('{tab}</{node_name}>\n'.format(
+                tab=tab, node_name=node_name
+            ))
 
 @app.route('/html_nonsense', methods=['GET'])
 def html_nonsense():
     graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
     results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
     root = results[0][0][0]
-    string_wrapper = { 's': '' }
-    node_helper(root, 0, string_wrapper)
+    html_builder = cStringIO.StringIO()
+    html_builder.write('<!doctype html>\n')
+    HtmlPrintableNode(root, 0).build_str(html_builder)
 
-    return '<!doctype html>\n{0}'.format(string_wrapper['s'])
+    return html_builder.getvalue()
 
 EXTENSIONS_TO_MIMETYPES = {
     '.js': 'application/javascript',
@@ -205,15 +214,15 @@ def catch_all(path):
     except IOError:
         abort(404)
         return
-    
-    
+
+
 def get_hit_counts(graph_db, results):
     return_events = {
         'mouseenter': 0,
         'click': 0
-    } 
-    
-    
+    }
+
+
     for result in [r[0] for r in results]:
         events = result.get_related_nodes(neo4j.Direction.OUTGOING, 'EVENT')
         for event in events:
@@ -221,32 +230,32 @@ def get_hit_counts(graph_db, results):
                 return_events['mouseenter'] += 1
             elif event['eventType'] == 'click':
                 return_events['click'] += 1
-                
+
     return return_events
-    
+
 def get_percentage_logged_in_vs_out(graph_db, results):
     return_val = {
         'logged_in': 0,
         'logged_out': 0
     }
-    
+
     for result in [r[0] for r in results]:
             body_node = cypher.execute(graph_db, """
-                start a=node({id}) 
-                match b-[:PARENT*]->(a) 
-                where has(b.tagName) and b.tagName='BODY' 
+                start a=node({id})
+                match b-[:PARENT*]->(a)
+                where has(b.tagName) and b.tagName='BODY'
                 return b
             """.format(id=result.id))[0]
-            
+
             if len(body_node) == 0:
                 continue
-            
+
             body_node = body_node[0][0]
-            
+
             if body_node:
                 return_val['logged_in'] += 1 if 'logged-in' in body_node['classArray'] else 0
                 return_val['logged_out'] += 1 if 'logged-out' in body_node['classArray'] else 0
-        
+
     return return_val
 
 if __name__ == "__main__":

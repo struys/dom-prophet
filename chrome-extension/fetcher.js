@@ -9,7 +9,7 @@
     // XXX: this is jacked from quirksmode.org and I don't really like it
     function readCookie(name) {
         var nameEQ = name + "=";
-	var ca = document.cookie.split(';');
+        var ca = document.cookie.split(';');
         for (var i = 0; i < ca.length; i += 1) {
             var c = ca[i];
             while (c.charAt(0) === ' ') {
@@ -63,7 +63,7 @@
 
         var logLine = {
             eventType: e.type,
-	    timeStamp: Date.now(),
+            timeStamp: Date.now(),
             elements: [],
             url: document.location.href,
             cookie: document.cookie,
