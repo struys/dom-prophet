@@ -1,10 +1,38 @@
 <!doctype html>
 <html>
 <head>
+  <link rel="stylesheet" href="css/reset.css" />
   <link rel="stylesheet" href="css/main.css" />
   <title>Hello World</title>
 </head>
 <body>
+
+<div class="wrap">
+  <div class="filters">
+  	<label class="search">
+  	<h2>CSS selector</h2>
+  	<input name="css" type="text"></input>
+  	</label>
+  	
+  	<label class="search">
+  		<h2>Servlet</h2>
+  		<select>
+  			<option name="home">home</option>
+  			<option name="home">biz_details</option>
+  		</select>
+  	</label>
+  
+  </div>
+  
+  <div class="main-content">
+  
+  <ul class="tabs">
+  	<li {% if tab == 'html' %} class="selected" {% endif %}><a href="/">HTML</a></li>
+  	<li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric">Metrics</a></li>
+  </ul>
+  </div>
+</div>
+  <!-- 
   <form>
     Search term: <input type="text" name="q" value="{{ search_term }}">
     <input type="submit">
@@ -23,5 +51,7 @@
     </ul>
   {% endif %}
   <script src="js/jquery-1.9.1.min.js"></script>
+  
+  -->
 </body>
 </html>

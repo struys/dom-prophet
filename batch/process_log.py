@@ -176,7 +176,6 @@ def upsert_to_graph(lines):
         user_id = log_line.get('yuv', 'defacto user')
         user_node = connect_user_with_event_node(user_id, event_node)
 
-
 for log_line in open('log', 'r'):
     json_line = json.loads(log_line)
     upsert_to_graph(json_line)

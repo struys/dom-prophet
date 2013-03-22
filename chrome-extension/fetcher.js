@@ -6,6 +6,22 @@
         yConfig = null,
         isYConfig = false;
 
+    // XXX: this is jacked from quirksmode.org and I don't really like it
+    function readCookie(name) {
+        var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i += 1) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1, c.length);
+            }
+            if (c.indexOf(nameEQ) === 0) {
+                return c.substring(nameEQ.length, c.length);
+            }
+        }
+        return null;
+    }
+
     function prepareLogLine(logLine) {
         logLine.uniqueRequestId = yConfig.uniqueRequestId || yConfig.uniqueRequestID;
     }
@@ -50,7 +66,8 @@
             elements: [],
             url: document.location.href,
             cookie: document.cookie,
-            pathName: window.location.pathname
+            pathName: window.location.pathname,
+            yuv: readCookie('yuv')
         };
 
         while (next != null) {
