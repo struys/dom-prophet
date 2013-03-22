@@ -188,15 +188,18 @@ def path_stats():
     if not path_elements:
         return
 
+    # TODO: Implement backend.
     path_elements = json.loads(path_elements)
+#    graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
 
+    import math
+    import random
     target_data = {
-        'clickCount': 42,
+        'clickCount': math.floor(100 * random.random()),
         'mouseoverCount': 9001
     }
     return json.dumps(target_data)
 
-    #graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
     #results = cypher.execute(graph_db, "start a=node(*) where has(a.tagName) and a.tagName='BASE' return a;")
     #root = results[0][0][0]
     #string_wrapper = { 's': '' }
