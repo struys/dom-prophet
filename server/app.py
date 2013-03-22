@@ -5,12 +5,13 @@ from flask import abort
 from flask import request
 from flask import render_template
 from flask import Response
+from py2neo import neo4j, cypher
 
 from util.css_to_cypher import calculate_neo4j_query
 
 app = Flask(__name__)
 
-log_file_path = '../log'
+log_file_path = 'log'
 
 @app.route('/log', methods=['POST'])
 def write_to_log():
@@ -44,9 +45,19 @@ def log_length():
 def index():
     '''Expects parameter "q"'''
     search_term = request.args.get('q', '')
+    
+    query = calculate_neo4j_query(search_term) if search_term else None
+
+    results = None
+    
+    if query is not None:
+        graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+        results = cypher.execute(graph_db, str(query))[0]
+    
     env = {
         'search_term': search_term,
-        'query': calculate_neo4j_query(search_term) if search_term else ''
+        'query': query,
+        'results': [result[0]['classArray'] for result in results] if results else None
     }
 
     return render_template('index.htm', **env)
