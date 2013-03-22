@@ -4,16 +4,19 @@
 """
 
 
+import Cookie
 import json
-from py2neo import neo4j, cypher
+from py2neo import neo4j, cypher, Direction
 
 graph_db = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
 graph_db.clear()
 
 base_node = graph_db.create({'tagName': 'BASE'})[0]
 
+
 def create_path(base_node, path_list):
     base_node.get_or_create_path(*path_list)
+
 
 def create_dom_path(path_name, path_elements):
     """Create event path traversal from HTML node to target element.
@@ -39,7 +42,7 @@ def create_dom_path(path_name, path_elements):
         element_id = element_attrs.get('id', '')
         element_class = element_attrs.get('class', '')
         # Compare current element with traversal node.
-        traversal_children = traversal_node.get_related_nodes(1, 'PARENT')
+        traversal_children = traversal_node.get_related_nodes(neo4j.Direction.OUTGOING, 'PARENT')
         traversal_child_match = False
         for traversal_child in traversal_children:
             child_properties = traversal_child.get_properties()
@@ -75,9 +78,10 @@ def create_dom_path(path_name, path_elements):
 
     return traversal_node
 
+
 def create_event_for_target_node(log_line, target_node):
     """Create event node for the target node of the interaction.
-    
+
     Args:
         log_line: The log line from the file.
         target_node: The neo4j node representing the event target.
@@ -96,6 +100,51 @@ def create_event_for_target_node(log_line, target_node):
     # Add relationship between target node and event node.
     target_node.create_relationship_to(event_node, 'EVENT')
     return event_node
+
+
+def fetch_user_node(uuid):
+    """Gets the user node, if it exists, else creates it.
+
+    Args:
+        uuid - the user unique id.
+    Returns:
+        user_node: The neo4j node representing the user.
+    """
+
+   query = """
+            START
+                user=node(*)
+            WHERE
+                has(user.uuid)
+                and user.uuid=%s
+            RETURN user""" % uuid
+
+    user_node = cypher(graph_db, query)[0]
+
+    if not user_node:
+        user_node = graph_db.create({
+            'uuid': uuid
+        })[0]
+
+    return user_node
+
+
+def connect_user_with_event_node(uuid, event_node):
+    """Create user node for the event node of the interaction.
+
+    Args:
+        uuid: The uuid for the user.
+        event_node: the neo4j node representing the event.
+
+    Returns:
+        user_node: The neo4j node representing the user.
+    """
+    user_node = fetch_user_node(uuid)
+    user_node.create_relationship_to(event_node, 'ACTION')
+    event_node.create_relationship_to(user_node, 'ACTOR')
+
+    return user_node
+
 
 def upsert_to_graph(lines):
     """Read each line and insert a new tree under the base node if the tree must
@@ -120,7 +169,12 @@ def upsert_to_graph(lines):
         target_node = create_dom_path(log_line['pathName'], reversed(log_line['elements']))
 
         # Create event node with relationship to target dom node.
-        create_event_for_target_node(log_line, target_node)
+        event_node = create_event_for_target_node(log_line, target_node)
+
+        # Create user node with relationship from user node to event node.
+        # 'yuv' is yelp specific. Replace with whatever you use.
+        user_id = log_line.get('yuv', 'defacto user')
+        user_node = connect_user_with_event_node(user_id, event_node)
 
 
 for log_line in open('log', 'r'):
