@@ -227,3 +227,43 @@ section {
     float:left;
     margin-right:10px;
 }
+
+#events {
+    margin: 10px;
+}
+
+#events h2 {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#events span {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#events .event-p {
+    margin-top: 2px;
+    margin-top: 2px;
+}
+
+#events .event-p span {
+    font-weight: bold;
+}
+
+#events h4 {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#events li {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 5px;
+    border: 1px solid #e5e5e5;
+}
+
+#events .event-inner {
+    padding-left: 10px;
+}

@@ -112,8 +112,8 @@ def metric():
 
     return render_template('index.htm', **env)
 
-@app.route('/simulator', methods=['GET'])
-def simulator():
+@app.route('/events', methods=['GET'])
+def events():
     search_user = request.args.get('yuv', '')
 
     if search_user != '':
@@ -122,8 +122,8 @@ def simulator():
         nodes = []
 
     env = {
-        'tab': 'simulator',
-        'search_user': search_user,
+        'tab': 'events',
+        'yuv': search_user,
         'results': nodes
     }
 

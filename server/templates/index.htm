@@ -3,7 +3,7 @@
 <head>
   <link rel="stylesheet" href="css/reset.css" />
   <link rel="stylesheet" href="css/main.css" />
-  <title>Hello World</title>
+  <title>DOM Prophet</title>
 </head>
 <body>
 
@@ -27,12 +27,12 @@
       <button type="submit">Search</button>
     </form>
 
-    <form action="/simulator">
+    <form action="/events">
       <label class="search">
         <h2>YUV search</h2>
         <input name="yuv" type="text" value="{{ search_user }}"></input>
       </label>
-      <button type="submit">Simulate</button>
+      <button type="submit">Find Events</button>
     </form>
   </div>
 
@@ -42,72 +42,99 @@
     <ul class="tabs">
       <li {% if tab == 'html' %} class="selected" {% endif %}><a href="/?css={{ search_term }}">HTML</a></li>
       <li {% if tab == 'metric' %} class="selected" {% endif %}><a href="/metric?css={{ search_term }}">Metrics</a></li>
-      <li {% if tab == 'simulator' %} class="selected" {% endif %}><a href="/simulator?css={{ search_term }}">Simulator</a></li>
+      <li {% if tab == 'events' %} class="selected" {% endif %}><a href="/events?yuv={{ search_term }}">Events</a></li>
     </ul>
 
-  <div class="tabbed-content">
-  	{% if tab == 'html' %}
-  		<iframe src="/html_nonsense?q={{ search_term }}"></iframe>
-  	{% elif tab == 'metric' %}
-		{% if query %}
-    		<div class="module query">
-    			<h2>Neo4j Query</h2>
-    			<span>{{ query }}</span>
-    		</div>
-  		{% endif %}
-  		<section>
-	  		{% if percent_breakdown %}
-	  			<div class="module users">
-		  			<h2>User Breakdown</h2>
-		  			<canvas class="user-breakdown" width="400" height="400"></canvas>
-		  			<div class="legend">
-		  				<span class="logged-out"><span></span>Logged Out</span>
-		  				<span class="logged-in"><span></span>Logged In</span>
-		  			</div>
-	  			</div>
-	  			<script>
-	  				window.percentBreakdown = {{percent_breakdown|tojson|safe}}
-	  			</script>
-	  		{% endif %}
-	  		
-	  		{% if histogram %}
-	  			<div class="module hits-over-time">
-		  			<h2>Hits Over Time</h2>
-		  			<canvas class="histogram" width="500" height="400"></canvas>
-		  			<div class="legend">
-			  			{% if hit_count['click'] > 0 %}
-		  					<div class="click"><span></span>{{hit_count['click']}} Clicks</div>
-		  				{% endif %}
-		  				{% if hit_count['mouseenter'] > 0 %}
-		  					<div class="mouseenter"><span></span>{{hit_count['mouseenter']}} Mouse Enters</div>
-		  				{% endif %}
-	  				</div>
-		  		</div>
-				<script>
-	  				window.histogram = {{histogram|tojson|safe}}
-	  			</script>
-	  		{% endif %}
-	  		
-	  		{% if children %}
-	  			<div class="module children">
-	  				<h2>Direct Children</h2>
-			  		<ul>
-			      		{% for child in children %}
-			        		<li>{{ child }}</li>
-			      		{% endfor %}
-		    		</ul>
-	    		</div>
-	  		{% endif %}
-  		</section>	
-	{% elif tab == 'simulator' %}
-		{% if yuv %}
-		  Simulator for: {{ yuv }}
-		{% endif %}
+    <div class="tabbed-content">
+      {% if tab == 'html' %}
+        <iframe src="/html_nonsense?q={{ search_term }}"></iframe>
+      {% elif tab == 'metric' %}
+        {% if query %}
+          <div class="module query">
+            <h2>Neo4j Query</h2>
+            <span>{{ query }}</span>
+          </div>
+        {% endif %}
+      <section>
+        {% if percent_breakdown %}
+          <div class="module users">
+            <h2>User Breakdown</h2>
+            <canvas class="user-breakdown" width="400" height="400"></canvas>
+            <div class="legend">
+              <span class="logged-out"><span></span>Logged Out</span>
+              <span class="logged-in"><span></span>Logged In</span>
+            </div>
+          </div>
+          <script>
+            window.percentBreakdown = {{percent_breakdown|tojson|safe}}
+          </script>
+        {% endif %}
 
-		{% if results %}
-			{{ results }}
-		{% endif %}
-  	{% endif %}
+        {% if hit_count %}
+          <div class="module hits">
+            <h2>Hit Count</h2>
+            <div>
+
+              {% if hit_count['click'] > 0 %}
+                <div>Clicks: {{hit_count['click']}}</div>
+              {% endif %}
+              {% if hit_count['mouseenter'] > 0 %}
+                <div>Mouse Enters: {{hit_count['mouseenter']}}</div>
+              {% endif %}
+
+            </div>
+          </div>
+        {% endif %}
+
+        {% if children %}
+          <div class="module children">
+            <h2>Direct Children</h2>
+            <ul>
+                {% for child in children %}
+                  <li>{{ child }}</li>
+                {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </section>
+  {% elif tab == 'events' %}
+    <div id='events'>
+      {% if yuv %}
+        <h2>Events for: {{ yuv }}</h2>
+      {% endif %}
+      <span> Sorted by most recently occured </span>
+
+      {% if results %}
+        <div id="user-events">
+          <ul>
+          {% for event in results %}
+            <li class="event">
+              <h4>Event:</h4>
+                <div class="event-inner">
+                    <p class="event-p">
+                      <span>Event Type:</span>
+                      {{ event['eventType'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Time: </span>
+                      {{ event['timeStamp'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Event URI:</span>
+                      {{ event['url'] }}
+                    </p>
+                    <p class="event-p">
+                      <span>Event servlet:</span>
+                      {{ event['pathName'] }}
+                    </p>
+              </div>
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
   </div>
 
   </div>
