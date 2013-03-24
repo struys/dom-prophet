@@ -87,14 +87,14 @@ def metric():
 
             selector = related['tagName'].lower()
 
-            def has_id(selector):
+            def has_id(related):
                 return 'id' in related and related['id'] is not None and related['id'] != ''
 
-            if has_id(selector):
+            if has_id(related):
                 selector += '#' + related['id']
 
             if len(related['classArray']) > 0 and related['classArray'][0] != '':
-                if not has_id(selector):
+                if not has_id(related):
                     selector += '.'
                 selector += '.'.join(related['classArray'])
 
@@ -159,13 +159,13 @@ def path_stats():
     query = calculate_neo4j_query(search_term) if search_term else None
 
     results = None
-    percent_breakdown = None
+    #percent_breakdown = None
     hit_count = None
 
     if query is not None:
         graph_db = neo4j.GraphDatabaseService(DATABASE_SERVICE)
         results = cypher.execute(graph_db, str(query))[0]
-        percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
+        #percent_breakdown = get_percentage_logged_in_vs_out(graph_db, results)
         hit_count = get_hit_counts(graph_db, results)
         target_data = {
             'clickCount': hit_count['click'],
